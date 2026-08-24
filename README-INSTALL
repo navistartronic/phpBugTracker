@@ -1,0 +1,166 @@
+phpBugTracker "2025" INSTALL
+============================
+
+TL;DR Version:
+---------------------
+ o unzip the code
+ o edit and run setperms.sh
+ o create your database backend
+ o edit and run PEAR_TEST.php
+ o point your browser to where you installed phpBugTracker
+ o answer the configuration form fields
+ o copy the downloaded config.php to where you installed phpBugTracker
+ o reload the browser and you are logged in as the administrator
+
+
+1. Preparation
+------------------------------------------------------
+ o  Download and unzip the latest phpbugtracker "2025" release zip file
+
+ o  Set the perms and ownership on all the directories.
+
+    $ vi setperms.sh            # set install dir, webserver user+group
+    root# bash ./setperms.sh
+
+    If you are on a system with SELinux, setperms.sh will set the proper context 
+    on writable directories
+
+ o  If using SQLite3 for the database, you do not have to create the database
+    beforehand. You can specify the location and database name in the browser 
+    installation form field and phpBugTracker will create it for you. It is 
+    recommended to install it in the ./db directory such as "phpbugtracker.db".
+    Directory "db" needs to be writable for SQLite3 usage. Also the proper 
+    SELinux context will need to be be set on directory "db" (via setperms.sh):
+
+    drwx------. 2 apache nobody unconfined_u:object_r:httpd_sys_rw_content_t:s0 4096 May 20 21:03 db
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    This is all handled by the setperms.sh script.
+
+ o  If not using SQLite3 for the database, create your database. 
+    See README-DATABASES for examples.
+
+ o  Test if PHP via Composer pear/db PEAR::DB packages can connect and run a 
+    simple query sucessfully to your newly created database with the user 
+    credentitals, see PEAR_TEST.php
+
+    You must first configure PEAR_TEST.php to use your database type and 
+    authentication criteria . Afterwards you can run the test from either the
+    command line or the browser:
+
+    $ php PEAR_TEST.php
+         -or-
+    URL http://localhost/path/to/phpbugtracker/PEAR_TEST.php
+
+ o  When PEAR_TEST.php can sucessfully connect and query your database, proceed
+    to the next step.
+
+2. phpBugTracker Setup Configuration
+------------------------------------------------------
+ o  Now point your browser to where you installed phpBugTracker: 
+      URL http://localhost/path/to/phpbugtracker/install.php
+
+ o  Fill in the install form fields. 
+
+    Test your database connection again with the [Test Database] button using 
+    database the connection parameters filled in one more time.
+
+    If the database test connection was successful, fill in the rest of the form
+    and click Submit
+
+    Clicking Submit, phpBugTracker will install the database schema and load the
+    tables with its information.  If the installation fails it will display the
+    results of the schema and table loads for further information of what went
+    wrong.
+
+    If the installation is sucessful you will stay on the same page looking like
+    nothing happened, but a generated configuration file named "config.php" will
+    be downloaded via the browser. Check your Downloads directory. Copy this 
+    generated "config.php" file to the root of the phpBugTracker directory.
+
+    Reload your browser and it will redirect you to phpBugTracker's main page
+    where you will logged in as the administrator.
+
+    If for any reason you want to start all over and try another install after
+    you have installed the generated downloaded config.php, then delete your
+    config.php, delete your database, create a fresh new database, and go 
+    through the install.php again.
+
+3. Post Install
+------------------------------------------------------
+ o  Create your first project and components: Admin->Projects
+
+ o  *NOTE* Before creating any user accounts, decide whether you want the user
+           login to be a username or the users email address. Changing it 
+           afterwards results in mixed name usage of login names and email
+           addresses in reports. Default is users email address.
+
+    This is toggled in Admin->Configuration:EMAIL_IS_LOGIN [X] Yes [ ] No
+
+
+==> You are now ready to start using phpBugTracker! <==
+
+
+4. Optional Post Configuration via config.php:
+------------------------------------------------------
+ o  All bug dates are stored and displayed by default in UTC time. 
+    If you want bugs displayed in your local timezone set TZ_LOCAL in config.php
+    accordingly.
+
+ o  If you want on the main page phpBugTracker to display BOTH the table stats
+    and the JpGraph Pie Chart stats, enable/disable in 
+       config.php:USE_BOTH_JPGRAPH_AND_TABLE_STATS
+    Display of JpGraph or Stats toggle are set in:
+       Admin->Configuration:USE_JPGRAPH settings.
+
+ o  E-mail Notifications
+    phpBugTracker by default will use PHPMailer for both SMTP and local mail
+    when installed. If you need SMTP deliveries, then enable it in 
+    config.php:SMTP_EMAIL and its related settings found there.
+
+    If you don't wish to use PHPMailer and instead use phpBugTracker's own mail
+    routines (highly not recommended, it "works" but will be removed at a later
+    date). This can be configured in config.php. This code was left in for
+    historical reasons and will probably be removed at a later date.
+
+ o  (optional) DB_CHARSET if needed (config.php). This is the client connection
+    charset to the database.  This is database specific and not needed for most
+    databases and PEAR::DB may not have this provision. Valid for Interbase, 
+    Oracle, Sybase databases.
+
+5. Other
+------------------------------------------------------
+ o  If you want to log all SQL queries for any debugging purposes generated by
+    the PEAR::DB package, then edit vendor/pear/db/DB/common.php and enable it,
+    line 1225:
+      if (false) error_log(__FILE__."::".__FUNCTION__."():".__LINE__." calling this->simpleQuery(".$query.")");
+    Logging is logged via PHP error_log() function.
+    This is custom code locally and not included or part of PEAR::DB.
+    Upgrading the PEAR::DB package will loose this code addition.
+
+    SQL statements logged will generally show a lowercase syntax part and an
+    uppercase syntax part. Lowercase come from from dynamically generated SQL
+    code from .php files. The uppercase part of the SQL query comes from 
+    ./in/db/<dbtype>.in template so you can see who does what part of the SQL
+    query.
+
+ o  NOTICE: Updating Composer packages
+    If you are using Oracle database: 
+       DO NOT update composer package PEAR::DB. Updating will break the queries.
+
+       There is a local bug fix in the oci8.php code for the queries to work:
+           vendor/pear/db/DB/oci8.php     see the diffs if curious.
+
+       This bug has been reported to the maintainers as a critical fix and
+       whether they do anything
+       with it remains to be seen.
+
+    If you are using SQLite3 for the database: 
+       Do not update composer package PEAR::DB. This currently contains a local
+       bug fix that is not crtical and has been reported to the maintainers. The
+       local fix pertains to the case when it cannot open the database and its
+       error handling. Upgrading the PEAR::DB package will loose the change.
+
+       There are local bug fix code in:
+           vendor/pear/db/DB/sqlite3.php  see the diffs if curious
+
+

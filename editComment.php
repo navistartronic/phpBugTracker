@@ -52,7 +52,7 @@ if (isset($_GET['newComment'])) {
 
 	// Update database.
 	// TODO: create a "revised_on" date column in the database
-	$db->query("update ".TBL_COMMENT." set comment_text=".$new_comment." where comment_id=$comment_id");
+	$db->query("update ".TBL_BUG_COMMENT." set comment_text=".$new_comment." where comment_id=$comment_id");
 	$t->assign('status', "Comment #$comment_id updated"); 
     header("Location: bug.php?op=show&bugid=$bug_id");
 }
@@ -60,7 +60,7 @@ if (isset($_GET['newComment'])) {
 //	List all comments
 //	In the case of an edit, this counts as the confirmation page.
 if (is_numeric($bug_id)) {
-	$t->assign('comments', $db->getAll('select c.* from '.TBL_COMMENT." c where bug_id=$bug_id order by c.created_date"));
+	$t->assign('comments', $db->getAll('select c.* from '.TBL_BUG_COMMENT." c where bug_id=$bug_id order by c.created_date"));
 	$t->render('editComment.html', translate("Edit Comment"));
 	}
 

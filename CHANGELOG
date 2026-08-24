@@ -1,3 +1,94 @@
+-- 2.0.0 Fall 2025-2026 Modernize 1.0.5 code for current PHP 8 and minor new additions
+
+This is a brief summary of changes to update phpBugTracker 1.0.5 to "2025" for current PHP and SQL.
+
+PEAR_TEST.php                                - reworked, added SQLite3, basic test query for each database, cli or browser usage
+admin/user.php                               - validate field sizes for login and email names
+admin/project.php                            - uncomment out perm check for user member of Admin group
+attachment.php                               - check for attachment subdirectory mkdir error
+bug.php                                      - replace TBL_COMMENT with TBL_BUG_COMMENT for Oracle, use qp_mail() send mail and 
+                                               check/log error if any, check if $reporter is set and numeric, check if new bug 
+                                               date is set
+config-dist.php                              - add DB_CHARSET, rename TBL_COMMENT TO TBL_BUG_COMMENT for Oracle, add 
+                                               TZ_DEFAULT and TZ_LOCAL timezone ability; add new abilities 
+                                               USE_BOTH_JPGRAPH_AND_TABLE_STATS, USE_PHPMAILER*, PHPMAILER_DEBUG_*, 
+                                               RETURN_PATH, REPY_TO*
+editComment.php                              - replace TBL_COMMENT with TBL_BUG_COMMENT for Oracle
+include.php                                  - add version from VERSION file, delete magic_quotes_sybase, use vendor/autoload.php,
+                                               fix uninitialized function default args
+                                               new - add 'charset' DB_CHARSET from config.php to DSN options
+                                               new - add Oracle options to oci8 driver when used,
+                                               new - add DSN options [] to DB::Connect()
+inc/htmlMimeMail/smtp.php                    - hacked. use __construct(), hack to use depricated access
+inc/htmlMimeMail/htmlMimeMail.php            - hacked. use __construct(). replace depricated reference list() to foreach()
+inc/htmlMimeMail/mimePart.php                - hacked. use __construct(), replace depricated reference list() to foreach()
+inc/htmlMimeMail/RFC822.php                  - hacked. use __construct(), check for is_array() or existance
+inc/functions.php                            - unified all mail sending via qp_mail(), conditional usage of PHPMailer or their 
+                                               mail routines, replace depricated reference list() to foreach(), check vars for 
+                                               is_array(), use filter_var() to validate email address format, handle error return
+                                               from PHPMailer or their smtp mail routines, replace TBL_COMMENT with TBL_BUG_COMMENT 
+                                               for Oracle reserved word conflict
+inc/auth.php                                 - use __construct()
+inc/db/*                                     - all SQL query templates are linked to inc/db/common.in which is based off of their 
+                                               original mssql.in which had well written standard SQL syntax, no database specific
+                                               syntax. Uppercase all their SQL statements.
+index.php                                    - USE_BOTH_JPGRAPH_AND_TABLE_STATS, use composer for jpgraph, add closed bugs to 
+                                               summaries, reworked jpgraph image size/position, removed conditionals in jpgraph 
+                                               data loop so reported Statuses match the html "Quick Stats" table found in 
+                                               templates/default/index.html which has no conditionals it its loop
+install.php use                              - use __construct(), delete get_magic_quotes_*() and magic_quotes_*(), 
+                                               rename table 'comment' to 'bug_comment' removing Oracle reserved word conflict,
+                                               use composer, add default perm for SQLite3 databases, replace depricated references 
+                                               to $query{0} add commented code to use when Oracle cloud is used
+languages/*                                  - sorted each in order, each file contains the same messages (was out of whack)
+newaccount.php                               - add checks for login and email lengths
+query.php                                    - replace TBL_COMMENT with TBL_BUG_COMMENT for Oracle, s/ereg_replace/preg_replace/g
+schemas/*                                    - fixed depricated SQL syntax, consitient table data loads for all database
+templates/default/install-question.html      - insert contents of new VERSION file containing current phpBugTracker version
+templates/default/admin/wrap.html            - use new phpBugTracker 2025 image and display current phpBugTracker version from new 
+                                               VERSION file; help index
+templates/default/admin/version-edit.html    - define variable before first reference
+templates/default/admin/project-add.html     - define variables before first reference
+templates/default/admin/user-edit.html       - increase login and email variables to 40 and 60 chars respectively to match the 
+                                               corresponding database field size.
+templates/default/admin/resolutionlist.html  - fix script language error causing resolution popup box to not be popped up like 
+                                               the others
+templates/default/admin/resolution-edit.html - test for existance of variables before referencing them
+templates/default/admin/configure.html       - remove references to get_magic_quotes_*()
+templates/default/admin/component-edit.html  - define variable before first reference
+templates/default/admin/priority-edit.html   - define variables before first reference
+templates/default/wrap.html                  - new favicons, reference new phpbugtracker 2025 image and display current version; 
+                                               help index
+templates/default/bugform.html               - add new bug form field to allow selection of bug date 
+templates/default/install-dbfailure.html     - rework error messages, add handling of SQLite3
+templates/default/install.html               - added phpbugtracker version, added javascript actions to hide/unhide form fields 
+                                               depending on database selections, mainly for SQLite3
+templates/default/index.html                 - add conditional to display both JpGraph and HTML table stats
+templates/default/bugdisplay-printable.html  - display bug tims in TZ_LOCAL, remove <br>'s from display
+templates/default/queryform-simple.html      - define variables before first reference
+templates/default/newaccount.html            - define variables before first reference
+templates/default/queryform.html             - define variables before first reference, check for is_array($emailfield1) or not
+templates/default/bugdisplay.html            - display bug dates using TZ_LOCAL, add translate(PRETAGS)
+upgrade.php                                  - add case for SQLite3 usage
+
+non-1.0.5 additions:
+ o uses composer pear/db packages
+ o unified all the languages/* to have all the same keys in all files
+ o unified all the inc/db SQL queries to be the same for all RDMS
+ o unified mail sent from one function not two different functions
+ o unified email and login char field size to match that of db schema
+ o rework PEAR_TEST.php and add SQLite3 tests
+ o rework jpgraph size and labels to match bug stats table
+ o rework install.php mainly for sqlite3 and oracle cloud/mTLS
+ o add selectable date widget on new bug addition
+ o add SQLite3 database backend ability
+ o add optional db client charset to config.php. Valid for Interbase, Oracle, Sybase databases.
+ o add ability to display default bug dates in local time via config.php LOCAL_TZ setting
+ o add PHPMailer for sending mail, add optional REPLY_TO,  RETURN_PATH to config.php
+ o add script setperm.sh for install prep: perms, ownership, selinux contexts
+
+------------------------------------------------------------------------------------------------------------------
+
 -- 1.0.5 2009 Sep - Performance Bug in Mysql.  Misc.
 : Performance: don't do expensive query joins unless the column will be shown (e.g. attachment count)
 : Performance: add intelligent indexes for mysql/mysqli -- this is a HUGE performance win
@@ -281,3 +372,4 @@
 : Added form field validations on the admin side.
 
 -- 0.1.0 -- 23 Dec 2000 -- Initial Release
+

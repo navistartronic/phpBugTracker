@@ -1,0 +1,73 @@
+phpBugTracker "2025" DATABASES
+==============================
+
+phpBugTracker 2025 has been installed and used (in various degrees, YMMV) with:
+  o MySQL 5.5.27                           (Solaris 10, PHP 5.4.7, in production use)
+  o MySQL 8.0.30                           (Oracle Linux 10, RHEL10, Remi PHP 8.4.17)
+  o PostgreSQL 16.4, 18.1                  (Oracle Linux 10, RHEL10, Remi PHP 8.4.17)
+  o SQLite3 3.46.1                         (Oracle Linux 10, Remi PHP 8.4.17)
+  o Oracle Cloud Autonomous Database 18c   (Oracle Linux 10, Remi PHP 8.4.7)
+
+phpBugTracker 2025 does not work with MS SQLServer unless you are using PHP 5 and
+has not been tested or verified. SQLServer according to the phpBugTracker 1.0.5
+information was a valid database backend choice for PHP 5.
+
+The PEAR team officially marked the PEAR::DB MSSQL driver as deprecated since the
+driver relies on the legacy ext/mssql PHP 5 extension and this extention has been 
+removed in PHP 7. It is no longer supported in modern versions of PHP 7+ and
+the PEAR::DB code has not been updated to use the current PHP sqlsvr_* extension.
+
+Quick How To Database Creation :
+
+MySQL
+-------------------------------------
+mysql> CREATE DATABASE `phpbugtracker` DEFAULT CHARACTER SET utf8mb3 COLLATE utf8_general_ci;
+mysql> CREATE USER `bugbuster`@`localhost` IDENTIFIED /* !800 WITH caching_sha2_password */ BY /*'bugbusterpw'*/ 'Raid!32ozSprayCan';
+mysql> GRANT CREATE, INDEX, INSERT, UPDATE, DELETE, SELECT ON `phpbugtracker`.* TO `bugbuster`@`localhost`;
+mysql> FLUSH PRIVILEGES;
+mysql> quit
+
+Test un/pw database connection:
+$ mysql -u bugbuster -p phpbugtracker
+
+
+PostgreSQL 16+
+-------------------------------------
+root# su - postgres
+postgres$ psql
+postgres=# CREATE ROLE phpbugtracker_role;
+postgres=# GRANT pg_read_all_data  TO phpbugtracker_role;
+postgres=# GRANT pg_write_all_data TO phpbugtracker_role;
+postgres=# CREATE USER bugbuster WITH LOGIN ENCRYPTED PASSWORD 'bugbusterpw' IN ROLE phpbugtracker_role;
+postgres=# CREATE DATABASE phpbugtracker WITH OWNER phpbugtracker_role;
+postgres=# \quit
+
+Test un/pw database connection:
+postgres$ psql -h localhost -U bugbuster -d phpbugtracker -W
+phpbugtracker=> \quit
+[postgres@virtnic ~]$  exit
+root#
+
+
+Oracle
+-------------------------------------
+Oracle Cloud: create in console
+
+
+ SQLite3
+-------------------------------------
+SQLite3 database will be created at the time of install if the database does not
+currently exist and PHP sqlite3 has the OS permissions to do so. It is not necessary 
+to create the database beforehand. 
+
+Note that the parent directory containing the sqlite3 database
+must be writable to the webserver (and writeable SELinux context allowance when SELinux is present). 
+Running the script setperms.sh will do all this for you on the local directory "db".
+
+At browser install time you can specify the full or local path to this location, i.e. "db/phpbugtracker.db"
+
+
+ MSSQL Server
+-------------------------------------
+PEAR::DB MSSQL Server driver does not work with newer PHP 7+. 
+Untested but may still work with PHP 5.

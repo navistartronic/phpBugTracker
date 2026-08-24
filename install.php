@@ -26,6 +26,7 @@
 include_once('inc/functions.php');
 define('THEME', 'default');
 define('RAWERROR', true);
+define('PEAR_PATH', ''); // not used when composer PEAR is used
 
 $log_text = "";
 $num_errors = 0;
@@ -54,7 +55,7 @@ function log_query($str) {
 class template {
 	var $vars;
 
-	function template($vars = array()) {
+	function __construct($vars = array()) {
 		$this->vars = $vars;
 	}
 
@@ -81,15 +82,13 @@ $t = new template(array(
 	'template_path' => 'templates/default'));
 
 $db_types = array(
-	'mysqli' => 'MySQL >= 4.1',
-	'mysql' => 'MySQL < 4.1',
-	'oci8' => 'Oracle 8.1.x',
+	'mysqli' => 'MySQL',
+	//'mysql' => 'MySQL < 4.1',
 	'pgsql' => 'PostgreSQL',
-	'mssql' => 'Microsoft SQL Server',
+	'sqlite3' => 'SQLite3',
+	'oci8' => 'Oracle',
+	//'mssql' => 'MS SQL Server < 8.0',
 	);
-
-@ini_set("magic_quotes_runtime", 0); // runtime quotes will kill the included sql
-@ini_set("magic_quotes_sybase", 0);
 
 if (!empty($_POST)) {
 	$tables = array(
@@ -102,12 +101,12 @@ if (!empty($_POST)) {
 		'/TBL_AUTH_PERM/' => $_POST['tbl_prefix'].'auth_perm',
 		'/TBL_AUTH_USER/' => $_POST['tbl_prefix'].'auth_user',
 		'/TBL_BUG_CC/' => $_POST['tbl_prefix'].'bug_cc',
+		'/TBL_BUG_COMMENT/' => $_POST['tbl_prefix'].'bug_comment',
 		'/TBL_BUG_DEPENDENCY/' => $_POST['tbl_prefix'].'bug_dependency',
 		'/TBL_BUG_GROUP/' => $_POST['tbl_prefix'].'bug_group',
 		'/TBL_BUG_HISTORY/' => $_POST['tbl_prefix'].'bug_history',
 		'/TBL_BUG_VOTE/' => $_POST['tbl_prefix'].'bug_vote',
 		'/TBL_BUG/' => $_POST['tbl_prefix'].'bug',
-		'/TBL_COMMENT/' => $_POST['tbl_prefix'].'comment',
 		'/TBL_COMPONENT/' => $_POST['tbl_prefix'].'component',
 		'/TBL_CONFIGURATION/' => $_POST['tbl_prefix'].'configuration',
 		'/TBL_GROUP_PERM/' => $_POST['tbl_prefix'].'group_perm',
@@ -169,29 +168,47 @@ function grab_config_file() {
 
 }
 function test_database(&$params, $testonly = false) {
-	// PEAR::DB
-	define('PEAR_PATH', ''); // Set this to '/some/path/' to not use system-wide PEAR
-	// define('PEAR_PATH', 'inc/pear/'); // use a locally installed Pear (phpBT v0.9.1)
-	if (!@include_once(PEAR_PATH.'DB.php')) {
-		$error_message = translate("Failed loading Pear:DB");
-		$error_info = translate("Please check your Pear installation and the defined PEAR_PATH in install.php");
-		$error_info .= " <a href='http://pear.php.net/'>http://pear.php.net/</a>";
+
+	// check composer autoload
+	if (!@include_once('vendor/autoload.php')) {
+		$error_message = translate("Failed loading Composer vendor/autoload.php");
+		$error_help  = "Please check your that Composer packages are installed correctly.<br>";
+		$error_help .= " <a href='https://packagist.org/packages/pear/db'>https://getcomposer.org/</a><br>";
+		$error_info = translate($error_help);
 		include('templates/default/install-dbfailure.html');
 		exit;
 	}
+
+	// check pear/db installed
+	$composerPkg = "pear/db";
+	$isInstalled = \Composer\InstalledVersions::isInstalled($composerPkg);
+	if (!$isInstalled) {
+		$error_message = translate("Composer reports that the required PEAR package ".$composerPkg." is not installed.");
+		$error_help  = "Please check that PEAR is installed using Composer specifying the ".$composerPkg." package.<br>";
+		$error_help .= " <a href='https://packagist.org/packages/pear/db'>https://packagist.org/packages/pear/db</a><br>";
+		$error_info = translate($error_help);
+		include('templates/default/install-dbfailure.html');
+		exit;
+	}
+
 	$dsn = array(
 		'phptype' => $params['db_type'],
 		'hostspec' => $params['db_host'],
 		'database'  => $params['db_database'],
 		'username'  => $params['db_user'],
-		'password'  => $params['db_pass']
+		'password'  => $params['db_pass'],
 		);
+
+	if ($params['db_type'] == 'sqlite3') {
+		$dsn['mode'] = '0600';
+	}
+
 	$db = DB::Connect($dsn);
 
 	// Simple error checking on returned DB object to check connection to db
 	if (DB::isError($db)) {
-		$error_message = $db->getMessage();	// isset($db->message)   ? $db->message : '';
-		$error_info    = $db->getUserInfo();	//isset($db->user_info) ? $db->user_info : '';
+		$error_message = $db->getMessage();     // isset($db->message)   ? $db->message : '';
+		$error_info    = $db->getUserInfo();    //isset($db->user_info) ? $db->user_info : '';
 		include('templates/default/install-dbfailure.html');
 		exit;
 	} else {
@@ -238,7 +255,7 @@ function create_tables() {
 	$do_query = '';
 	foreach ($queries as $query) {
 		// First, collect multi-line queries into one line, then run the query
-		if ($query{0} == '#') continue;
+		if ($query[0] == '#') continue;
 		$do_query .= chop($query);
 		if (empty($do_query) or substr($do_query, -1) != ';') continue;
 		if ($_POST['db_type'] == 'oci8' ) {
@@ -248,6 +265,7 @@ function create_tables() {
 		syslog(LOG_DEBUG,stripslashes($do_query));
 		$do_query = '';
 	}
+
 	/*!! BAD! Must figure out how to get db_version from config-dist.php... */
 	/*!! Must manually be updated when DB_VERSION changes !! */
 	$query = preg_replace(array_keys($tables), array_values($tables), 'INSERT INTO TBL_CONFIGURATION (varname,varvalue,description,vartype) VALUES (\'DB_VERSION\', './*!!!*/6/*!!!*/.', \'Database Version <b>Warning:</b> Changing this might make things go horribly wrong, so do not change it.\', \'mixed\')');
@@ -263,11 +281,19 @@ function check_vars() {
 	global $_POST;
 
 	$error = '';
-	if (!$_POST['db_host'] = trim($_POST['db_host'])) {
+
+	// Oracle OCI cloud or connections via m/TLS (using network/admin/tnsnames.ora): hostname, username and password 
+	// are not required when using Oracle database w/mTLS. Just the database alias from tnsnames.ora for the Database field.
+	// Uncomment the db_type test to use mTLS connection.
+	// Oracle XE database does require the normal hostname, username and password
+	//  
+	// Sqlite3 does not use the hostname, username or password for its connections.
+
+	if ( ($_POST['db_type'] != 'sqlite3' /* && $_POST['db_type'] != 'oci8' */) && !$_POST['db_host'] = trim($_POST['db_host'])) {
 		$error = translate("Please enter the host name for your database server");
 	} elseif (!$_POST['db_database'] = trim($_POST['db_database'])) {
 		$error = translate("Please enter the name of the database you will be using");
-	} elseif (!$_POST['db_user'] = trim($_POST['db_user'])) {
+	} elseif ($_POST['db_type'] != 'sqlite3' && !$_POST['db_user'] = trim($_POST['db_user'])) {
 		$error = translate("Please enter the user name for connecting to the database");
 	} elseif (!$_POST['phpbt_email'] = trim($_POST['phpbt_email'])) {
 		$error = translate("Please enter the phpBT email address");
@@ -349,14 +375,9 @@ if (isset($_POST['op'])) {
 	}
 } else {
 	$error = '';
-
-	if (!get_magic_quotes_gpc()) {
-		$error .= "<p><hr></p><p>magic_quotes_gpc is OFF!</p>".
-			"<p>You must have magic_quotes_gpc set to On either in php.ini or in ".
-			".htaccess (see <a href=\"http://php.net/magic_quotes\">http://php.net/magic_quotes</a> for more info).</p><p><hr></p>";
-	}
-
 	show_front($error);
 }
+
+
 // Any whitespace below the end tag will disrupt config.php
 ?>

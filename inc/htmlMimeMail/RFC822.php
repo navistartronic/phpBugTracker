@@ -105,7 +105,7 @@ class Mail_RFC822
      * 
      * @return object Mail_RFC822 A new Mail_RFC822 object.
      */
-    function Mail_RFC822($address = null, $default_domain = null, $nest_groups = null, $validate = null, $limit = null)
+    function __construct($address = null, $default_domain = null, $nest_groups = null, $validate = null, $limit = null)
     {
         if (isset($address))        $this->address        = $address;
         if (isset($default_domain)) $this->default_domain = $default_domain;
@@ -584,8 +584,10 @@ class Mail_RFC822
             }
         }
 
-        for($i=0; $i<count(@$comments); $i++){
-            $mailbox = str_replace('('.$comments[$i].')', '', $mailbox);
+        if (isset($comments) && is_array($comments)) {
+            for($i=0; $i<count(@$comments); $i++){
+                $mailbox = str_replace('('.$comments[$i].')', '', $mailbox);
+            }
         }
         $mailbox = trim($mailbox);
 

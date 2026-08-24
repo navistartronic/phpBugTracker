@@ -16,6 +16,13 @@
         return true;
     }
 </script>
+<?php
+if (!isset($priority_color)) $priority_color = "";
+if (!isset($priority_desc))  $priority_desc = "";
+if (!isset($priority_id))    $priority_id = "";
+if (!isset($priority_name))  $priority_name = "";
+if (!isset($sort_order))     $sort_order = "";
+?>
 <b><?php echo $page_title; ?>&nbsp;</b> 
 <hr size="1">
 <form method="post" onsubmit="return checkForm(this)">

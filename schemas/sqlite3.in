@@ -1,0 +1,469 @@
+# SQLlite3 database creation template
+#
+# SQLite3 database creation template based on MySQL database template.
+# Modified for sqlite3 syntax.
+#
+# This is a template for install.php -- not for creating the database!
+#
+# $Id: mysqli.in,v 1.11 2008/10/06 03:41:20 brycen Exp $
+
+
+CREATE TABLE TBL_ATTACHMENT (
+  attachment_id integer not null default '0',
+  bug_id        integer not null default '0',
+  file_name     character(255) not null default '',
+  description   character(255) not null default '',
+  file_size     bigint not null default '0',
+  mime_type     character(30) not null default '',
+  created_by    integer not null default '0',
+  created_date  bigint not null default '0',
+  PRIMARY KEY (attachment_id)
+);
+
+CREATE TABLE TBL_AUTH_GROUP (
+  group_id INTEGER NOT NULL DEFAULT '0',
+  group_name VARCHAR(80) NOT NULL DEFAULT '',
+  locked TINYINT NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  is_role TINYINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (group_id)
+);
+
+CREATE TABLE TBL_AUTH_PERM (
+  perm_id INTEGER NOT NULL DEFAULT '0',
+  perm_name VARCHAR(80) NOT NULL DEFAULT '',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (perm_id)
+);
+
+CREATE TABLE TBL_AUTH_USER (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  login CHARACTER(60) NOT NULL DEFAULT '',
+  first_name CHARACTER(40) NOT NULL DEFAULT '',
+  last_name CHARACTER(40) NOT NULL DEFAULT '',
+  email CHARACTER(60) NOT NULL DEFAULT '',
+  password CHARACTER(40) NOT NULL DEFAULT '',
+  active TINYINT NOT NULL DEFAULT '1',
+  bug_list_fields TEXT NULL ,
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (user_id)
+);
+
+CREATE TABLE TBL_BOOKMARK (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  bug_id INTEGER NOT NULL DEFAULT '0'
+);
+
+CREATE TABLE TBL_BUG (
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  title VARCHAR(100) NOT NULL DEFAULT '',
+  description TEXT NOT NULL ,
+  url VARCHAR(255) NOT NULL DEFAULT '',
+  severity_id TINYINT NOT NULL DEFAULT '0',
+  priority TINYINT NOT NULL DEFAULT '0',
+  status_id TINYINT NOT NULL DEFAULT '0',
+  resolution_id TINYINT NOT NULL DEFAULT '0',
+  database_id TINYINT NOT NULL DEFAULT '0',
+  site_id TINYINT NOT NULL DEFAULT '0',
+  assigned_to INTEGER NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  project_id INTEGER NOT NULL DEFAULT '0',
+  version_id INTEGER NOT NULL DEFAULT '0',
+  component_id INTEGER NOT NULL DEFAULT '0',
+  os_id TINYINT NOT NULL DEFAULT '0',
+  browser_string VARCHAR(255) NOT NULL DEFAULT '',
+  close_date BIGINT NOT NULL DEFAULT '0',
+  closed_in_version_id INTEGER NOT NULL DEFAULT '0',
+  to_be_closed_in_version_id INTEGER NOT NULL DEFAULT '0',
+  PRIMARY KEY (bug_id)
+);
+
+CREATE TABLE TBL_BUG_CC (
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  user_id INTEGER NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (bug_id, user_id)
+);
+
+CREATE TABLE TBL_BUG_COMMENT (
+  comment_id INTEGER NOT NULL DEFAULT '0',
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  comment_text TEXT NOT NULL ,
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (comment_id)
+);
+
+CREATE TABLE TBL_BUG_DEPENDENCY (
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  depends_on INTEGER NOT NULL DEFAULT '0',
+  PRIMARY KEY (bug_id, depends_on)
+);
+
+CREATE TABLE TBL_BUG_GROUP (
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  group_id INTEGER NOT NULL DEFAULT '0',
+  PRIMARY KEY (bug_id, group_id)
+);
+
+CREATE TABLE TBL_BUG_HISTORY (
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  changed_field VARCHAR(30) NOT NULL DEFAULT '',
+  old_value VARCHAR(255) NOT NULL DEFAULT '',
+  new_value VARCHAR(255) NOT NULL DEFAULT '',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0'
+);
+
+CREATE TABLE TBL_BUG_VOTE (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  bug_id INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (user_id, bug_id)
+);
+
+CREATE TABLE TBL_COMPONENT (
+  component_id INTEGER NOT NULL DEFAULT '0',
+  project_id INTEGER NOT NULL DEFAULT '0',
+  component_name VARCHAR(30) NOT NULL DEFAULT '',
+  component_desc TEXT NOT NULL ,
+  owner INTEGER NOT NULL DEFAULT '0',
+  active TINYINT NOT NULL DEFAULT '1',
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (component_id)
+);
+
+CREATE TABLE TBL_CONFIGURATION (
+  varname CHARACTER(40) NOT NULL DEFAULT '',
+  varvalue CHARACTER(255) NOT NULL DEFAULT '',
+  description CHARACTER(255) NOT NULL DEFAULT '',
+  vartype CHARACTER(20) NOT NULL DEFAULT '',
+  PRIMARY KEY (varname)
+);
+
+CREATE TABLE TBL_DATABASE (
+  database_id TINYINT NOT NULL DEFAULT '0',
+  database_name VARCHAR(40) NOT NULL DEFAULT '',
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (database_id)
+);
+
+# table load insert into group_perm ... is done by schemas/common.in
+CREATE TABLE TBL_GROUP_PERM (
+  group_id INTEGER NOT NULL DEFAULT '0',
+  perm_id INTEGER NOT NULL DEFAULT '0',
+  PRIMARY KEY (group_id, perm_id)
+);
+
+CREATE TABLE TBL_OS (
+  os_id INTEGER NOT NULL DEFAULT '0',
+  os_name CHARACTER(30) NOT NULL DEFAULT '',
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  regex CHARACTER(40) NOT NULL DEFAULT '',
+  PRIMARY KEY (os_id)
+);
+
+CREATE TABLE TBL_PRIORITY (
+  priority_id INTEGER NOT NULL DEFAULT '0',
+  priority_name VARCHAR(30) NOT NULL DEFAULT '',
+  priority_desc TEXT NOT NULL ,
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  priority_color VARCHAR(10) NOT NULL DEFAULT '#FFFFFF',
+  PRIMARY KEY (priority_id)
+);
+
+CREATE TABLE TBL_PROJECT (
+  project_id INTEGER NOT NULL DEFAULT '0',
+  project_name VARCHAR(30) NOT NULL DEFAULT '',
+  project_desc TEXT NOT NULL ,
+  active TINYINT NOT NULL DEFAULT '1',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (project_id)
+);
+
+CREATE TABLE TBL_PROJECT_GROUP (
+  project_id INTEGER NOT NULL DEFAULT '0',
+  group_id INTEGER NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (project_id, group_id)
+);
+
+CREATE TABLE TBL_PROJECT_PERM (
+  project_id INTEGER NOT NULL DEFAULT '0',
+  user_id INTEGER NOT NULL DEFAULT '0'
+);
+
+CREATE TABLE TBL_RESOLUTION (
+  resolution_id INTEGER NOT NULL DEFAULT '0',
+  resolution_name VARCHAR(30) NOT NULL DEFAULT '',
+  resolution_desc TEXT NOT NULL ,
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (resolution_id)
+);
+
+CREATE TABLE TBL_SAVED_QUERY (
+  saved_query_id INTEGER NOT NULL DEFAULT '0',
+  user_id INTEGER NOT NULL DEFAULT '0',
+  saved_query_name VARCHAR(40) NOT NULL DEFAULT '',
+  saved_query_string TEXT NOT NULL ,
+  PRIMARY KEY (saved_query_id, user_id)
+);
+
+CREATE TABLE TBL_SEVERITY (
+  severity_id INTEGER NOT NULL DEFAULT '0',
+  severity_name VARCHAR(30) NOT NULL DEFAULT '',
+  severity_desc TEXT NOT NULL ,
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  severity_color VARCHAR(10) NOT NULL DEFAULT '#FFFFFF',
+  PRIMARY KEY (severity_id)
+);
+
+CREATE TABLE TBL_SITE (
+  site_id TINYINT NOT NULL DEFAULT '0',
+  site_name VARCHAR(50) NOT NULL DEFAULT '',
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (site_id)
+);
+
+CREATE TABLE TBL_STATUS (
+  status_id INTEGER NOT NULL DEFAULT '0',
+  status_name VARCHAR(30) NOT NULL DEFAULT '',
+  status_desc TEXT NOT NULL ,
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  bug_open TINYINT NOT NULL DEFAULT '1',
+  PRIMARY KEY (status_id)
+);
+
+CREATE TABLE TBL_USER_GROUP (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  group_id INTEGER NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (user_id, group_id)
+);
+
+CREATE TABLE TBL_USER_PERM (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  perm_id INTEGER NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (user_id, perm_id)
+);
+
+CREATE TABLE TBL_USER_PREF (
+  user_id INTEGER NOT NULL DEFAULT '0',
+  email_notices TINYINT NOT NULL DEFAULT '1',
+  saved_queries TINYINT NOT NULL DEFAULT '1',
+  def_results INTEGER NOT NULL DEFAULT '20',
+  PRIMARY KEY (user_id)
+);
+
+CREATE TABLE TBL_VERSION (
+  version_id INTEGER NOT NULL DEFAULT '0',
+  project_id INTEGER NOT NULL DEFAULT '0',
+  version_name CHARACTER(30) NOT NULL DEFAULT '',
+  active TINYINT NOT NULL DEFAULT '1',
+  sort_order TINYINT NOT NULL DEFAULT '0',
+  created_by INTEGER NOT NULL DEFAULT '0',
+  created_date BIGINT NOT NULL DEFAULT '0',
+  last_modified_by INTEGER NOT NULL DEFAULT '0',
+  last_modified_date BIGINT NOT NULL DEFAULT '0',
+  PRIMARY KEY (version_id)
+);
+
+# ---- same data loads for all databases types -----
+
+# Part 1 of 3: tables loads w/o corresponding sequence table
+
+# Initialize AUTH_PERM table
+# with and fourteen permissions ... Admin->Group Permissions->[User] popup:
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (1,  'Admin');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (2,  'AddBug');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (3,  'EditAssignment');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (4,  'Assignable');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (5,  'EditBug');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (6,  'CloseBug');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (7,  'CommentBug');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (8,  'EditPriority');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (9,  'EditStatus');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (10, 'EditSeverity');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (11, 'EditResolution');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (12, 'EditProject');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (13, 'EditComponent');
+INSERT INTO TBL_AUTH_PERM (perm_id, perm_name) VALUES (14, 'ManageBug');
+
+# Initialize CONFIGURATION table: Admin->Configuration
+INSERT INTO TBL_CONFIGURATION VALUES ('INSTALL_URL','OPTION_INSTALL_URL','The base URL of the phpBugTracker installation','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('JPGRAPH_PATH','','If not in the include path.  This is the file path on the web server, not a URL.','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('CVS_WEB','http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/phpbt/phpbt/','Location of your cvs web interface (see format_comments() in bug.php)','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('ADMIN_EMAIL','OPTION_PHPBT_EMAIL','The email address used in correspondence from the bug tracker','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('ENCRYPT_PASS','OPTION_ENCRYPT_PASS','Whether to store passwords encrypted.  <b>Warning:</b> Changing this after users have been created will result in their being unable to login.','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('USE_JPGRAPH','','Whether to show some reports as images','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('MASK_EMAIL','1','Should email addresses have . changed to ''dot'' and @ change to ''at''?','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('HIDE_EMAIL','1','Should email addresses be hidden for those not logged in?','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('USE_SEVERITY_COLOR','1','Should the query list use the severity colors as the row background color (like SourceForge)','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('USE_PRIORITY_COLOR','0','Should the query list use the priority colors as the row background color','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('EMAIL_IS_LOGIN','1','Whether to use email addresses as logins','bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('STRICT_UPDATING', '0', 'Only the bug reporter, bug owner, managers, and admins can change a bug', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('NEW_ACCOUNTS_DISABLED', '0', 'Only admins can create new user accounts - newaccount.php is disabled', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('NEW_ACCOUNTS_GROUP', 'User', 'The group assigned to new user accounts', 'string');
+INSERT INTO TBL_CONFIGURATION VALUES ('RECALL_LOGIN', '0', 'Enable use of cookies to store username between logins', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('SHOW_PROJECT_SUMMARIES', '1', 'Itemize bug stats by project on the home page', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('FORCE_LOGIN', '0', 'Force users to login before being able to use the bug tracker', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('PROMOTE_VOTES', 5, 'The number of votes required to promote a bug from Unconfirmed to New (Set to 0 to disable promotions by voting)', 'string');
+INSERT INTO TBL_CONFIGURATION VALUES ('MAX_USER_VOTES', 5, 'The maximum number of votes a user can cast across all bugs (Set to 0 to have no limit)', 'string');
+INSERT INTO TBL_CONFIGURATION VALUES ('ATTACHMENT_PATH','attachments','Sub-dir of the INSTALLPATH - Needs to be writeable by the web process','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('THEME','default','Which set of templates to use','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('ATTACHMENT_MAX_SIZE','2097152','Maximum size (in bytes) of an attachment. This will not override the settings in php.ini if php.ini has a lower limit.','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('DATE_FORMAT','m-d-Y','See the <a href="https://www.php.net/manual/en/datetime.format.php" target="_new">Date and Time formatting page</a> in the PHP manual for more info','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('TIME_FORMAT','g:i A','See the <a href="https://www.php.net/manual/en/datetime.format.php" target="_new">Date and Time formatting page</a> in the PHP manual for more info','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('LANGUAGE','en','The language file to use for warning and error messages','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('STYLE', 'default', 'The CSS file to use (color scheme)', 'multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('SEND_MIME_EMAIL', '1', 'Whether to use MIME quoted-printable encoded emails or not', 'bool');
+INSERT INTO TBL_CONFIGURATION VALUES ('BUG_UNCONFIRMED','1','The status to assign a bug when it is first submitted.','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('BUG_PROMOTED','2','The status to assign a bug when it is promoted (if enabled).','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('BUG_ASSIGNED','3','The status to assign a bug when it is assigned.','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('BUG_REOPENED','4','The status to assign a bug when it is reopened.','multi');
+INSERT INTO TBL_CONFIGURATION VALUES ('EMAIL_DISABLED', '0', 'Whether to disable all mail sent from the system', 'bool');
+
+# Initialize USER_GROUP table
+# USER_GROUP: Insert user_id 1 (administrator) into the admininstrator group (1)
+INSERT INTO TBL_USER_GROUP (user_id, group_id) VALUES (1, 1);
+
+
+# Part 2 of 3: tables loads that have corresponding sequence (sequence initialization is database specific)
+# With PEAR DB, sequence is the last value used so the next sequence to use will be id + 1
+
+# Initialize AUTH_USER table
+# with two users: anonymous and admininstrator (from install.php page)
+INSERT INTO TBL_AUTH_USER (user_id, login, first_name, last_name, email, password, active) VALUES 
+     (0, 'Anonymous User', 'Anonymous', 'User', '', '', 0),
+     (1, 'OPTION_ADMIN_EMAIL', 'System', 'Admin', 'OPTION_ADMIN_EMAIL', 'OPTION_ADMIN_PASS', 1);
+
+# Initialize USER_PREF table - dependent on TBL_AUTH_USER
+# USER_PREF: Add user's prefs as default values for all users defined so far (administrator, anonymous)
+INSERT INTO TBL_USER_PREF (user_id) SELECT USER_ID FROM TBL_AUTH_USER;
+
+# Initialize AUTH_GROUP table
+# Start off with four user levels... Admin->Group Permissions
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, locked) VALUES (1, 'Admin', 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, locked) VALUES (2, 'User', 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, locked) VALUES (3, 'Developer', 0);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, locked) VALUES (4, 'Manager', 0);
+# and six user roles ... Admin->Role Permissions
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, is_role, locked) VALUES (5, 'Guest', 1, 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, is_role, locked) VALUES (6, 'User', 1, 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, is_role, locked) VALUES (7, 'Reporter', 1, 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, is_role, locked) VALUES (8, 'Assignee', 1, 1);
+INSERT INTO TBL_AUTH_GROUP (group_id, group_name, is_role, locked) VALUES (9, 'Owner', 1, 1);
+
+# Initialize DATABASE table
+# Special: inc/functions.php:build_select() will add an option value of "None" w/option value = 0
+# so Add New Bug and Advance Query will always show "None" as an option when the TBL_DATABASE
+# has zero or more records in it. So you can have no INSERT's here.
+# That code is commented out so you need to have at least one INSERT here:
+INSERT INTO TBL_DATABASE VALUES (1,'None',1);
+
+# Initialize OS table
+INSERT INTO TBL_OS VALUES (1,'None',1,'');
+
+# Initialize PRIORITY table
+INSERT INTO TBL_PRIORITY VALUES (1,'Low','Fix if possible',1,'#dadada');
+INSERT INTO TBL_PRIORITY VALUES (2,'Medium Low','Must fix before final',2,'#dad0d0');
+INSERT INTO TBL_PRIORITY VALUES (3,'Medium','Fix before next milestone (alpha, beta, etc.)',3,'#dac0c0');
+INSERT INTO TBL_PRIORITY VALUES (4,'Medium High','Fix as soon as possible',4,'#dab0b0');
+INSERT INTO TBL_PRIORITY VALUES (5,'High','Fix immediately',5,'#ff9999');
+
+# Initialize RESOLUTION table
+INSERT INTO TBL_RESOLUTION VALUES (1,'Fixed','Bug was eliminated',1);
+INSERT INTO TBL_RESOLUTION VALUES (2,'Not a bug','It''s not a bug -- it''s a feature!',2);
+INSERT INTO TBL_RESOLUTION VALUES (3,'Won''t Fix','This bug will stay',3);
+INSERT INTO TBL_RESOLUTION VALUES (4,'Deferred','We''ll get around to it later',4);
+INSERT INTO TBL_RESOLUTION VALUES (5,'Works for me','Can''t replicate the bug',5);
+INSERT INTO TBL_RESOLUTION VALUES (6,'Duplicate','Duplicate bug',6);
+
+# Initialize SEVERITY table
+INSERT INTO TBL_SEVERITY VALUES (1,'Unassigned','Default bug creation',1,'#dadada');
+INSERT INTO TBL_SEVERITY VALUES (2,'Idea','Ideas for further development',2,'#dad0d0');
+INSERT INTO TBL_SEVERITY VALUES (3,'Feature Request','Requests for specific features',3,'#dacaca');
+INSERT INTO TBL_SEVERITY VALUES (4,'Annoyance','Cosmetic problems or bugs not affecting performance',4,'#dac0c0');
+INSERT INTO TBL_SEVERITY VALUES (5,'Content','Non-functional related bugs, such as text content',5,'#dababa');
+INSERT INTO TBL_SEVERITY VALUES (6,'Significant','A bug affecting the intended performance of the product',6,'#dab0b0');
+INSERT INTO TBL_SEVERITY VALUES (7,'Critical','A bug severe enough to prevent the release of the product',7,'#ff9999');
+
+# Initialize SITE table
+INSERT INTO TBL_SITE VALUES (1,'None',1);
+
+# Initialize STATUS table
+INSERT INTO TBL_STATUS VALUES (1,'New Report','Newly submitted report.',1,1);
+INSERT INTO TBL_STATUS VALUES (2,'Reviewed'  ,'Module owner has looked at report, properly categorized it.',2,1);
+INSERT INTO TBL_STATUS VALUES (3,'Assigned'  ,'Assigned to a developer.',3,1);
+INSERT INTO TBL_STATUS VALUES (4,'Needs QA'  ,'Set by engineer with a resolution, needs to be verified.',4,1);
+INSERT INTO TBL_STATUS VALUES (5,'Verified'  ,'The resolution is confirmed by the reporter',5,1);
+INSERT INTO TBL_STATUS VALUES (6,'Reopened'  ,'Closed but opened again for further inspection',6,1);
+INSERT INTO TBL_STATUS VALUES (7,'Closed'    ,'The bug is officially squashed.',7,0);
+
+
+# Part 3 of 3: create and set starting sequences ...
+
+# sqlite3:
+CREATE TABLE TBL_ATTACHMENT_seq  (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_BUG_seq         (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_BUG_COMMENT_seq (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_COMPONENT_seq   (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_PROJECT_seq     (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_STATUS_seq      (id INTEGER PRIMARY KEY AUTOINCREMENT);
+
+CREATE TABLE TBL_AUTH_GROUP_seq  (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_AUTH_USER_seq   (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_DATABASE_seq    (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_OS_seq          (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_PRIORITY_seq    (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_RESOLUTION_seq  (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_SEVERITY_seq    (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_SITE_seq        (id INTEGER PRIMARY KEY AUTOINCREMENT);
+CREATE TABLE TBL_VERSION_seq     (id INTEGER PRIMARY KEY AUTOINCREMENT);
+
+# -- manually counted and set ...
+#INSERT INTO TBL_AUTH_USER_seq  VALUES (1);
+#INSERT INTO TBL_AUTH_GROUP_seq VALUES (9);
+#INSERT INTO TBL_DATABASE_seq   VALUES (1);
+#INSERT INTO TBL_OS_seq         VALUES (1);
+#INSERT INTO TBL_PRIORITY_seq   VALUES (5);
+#INSERT INTO TBL_RESOLUTION_seq VALUES (6);
+#INSERT INTO TBL_SEVERITY_seq   VALUEs (7);
+#INSERT INTO TBL_SITE_seq       VALUES (1);
+#INSERT INTO TBL_STATUS_seq     VALUES (7);
+
+# -- calculated ...
+INSERT INTO TBL_AUTH_USER_seq (id)   SELECT COUNT(*) - 1 FROM TBL_AUTH_USER;
+INSERT INTO TBL_AUTH_GROUP_seq (id)  SELECT COUNT(*) FROM TBL_AUTH_GROUP;
+INSERT INTO TBL_DATABASE_seq (id)    SELECT COUNT(*) FROM TBL_DATABASE;
+INSERT INTO TBL_OS_seq (id)          SELECT COUNT(*) FROM TBL_OS;
+INSERT INTO TBL_PRIORITY_seq (id)    SELECT COUNT(*) FROM TBL_PRIORITY;
+INSERT INTO TBL_RESOLUTION_seq (id)  SELECT COUNT(*) FROM TBL_RESOLUTION;
+INSERT INTO TBL_SEVERITY_seq (id)    SELECT COUNT(*) FROM TBL_SEVERITY;
+INSERT INTO TBL_SITE_seq (id)        SELECT COUNT(*) FROM TBL_SITE;
+INSERT INTO TBL_STATUS_seq (id)      SELECT COUNT(*) FROM TBL_STATUS;
+

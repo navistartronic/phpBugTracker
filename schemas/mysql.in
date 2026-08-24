@@ -52,7 +52,7 @@ CREATE TABLE TBL_AUTH_PERM (
 # TBL_AUTH_USER
 CREATE TABLE TBL_AUTH_USER (
   user_id int(10) unsigned NOT NULL default '0',
-  login char(40) NOT NULL default '',
+  login char(60) NOT NULL default '',
   first_name char(40) NOT NULL default '',
   last_name char(40) NOT NULL default '',
   email char(60) NOT NULL default '',
@@ -107,6 +107,18 @@ CREATE TABLE TBL_BUG (
 
 
 #--
+# TBL_BUG_COMMENT
+CREATE TABLE TBL_BUG_COMMENT (
+  comment_id int(10) unsigned NOT NULL default '0',
+  bug_id int(10) unsigned NOT NULL default '0',
+  comment_text text NOT NULL,
+  created_by int(10) unsigned NOT NULL default '0',
+  created_date bigint(20) unsigned NOT NULL default '0',
+  PRIMARY KEY  (comment_id)
+) TYPE=MyISAM;
+
+
+#--
 # TBL_BUG_CC
 CREATE TABLE TBL_BUG_CC (
   bug_id int(10) unsigned NOT NULL default '0',
@@ -156,18 +168,6 @@ CREATE TABLE TBL_BUG_VOTE (
   created_date bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (user_id, bug_id),
   KEY bug_id (bug_id)
-) TYPE=MyISAM;
-
-
-#--
-# TBL_COMMENT
-CREATE TABLE TBL_COMMENT (
-  comment_id int(10) unsigned NOT NULL default '0',
-  bug_id int(10) unsigned NOT NULL default '0',
-  comment_text text NOT NULL,
-  created_by int(10) unsigned NOT NULL default '0',
-  created_date bigint(20) unsigned NOT NULL default '0',
-  PRIMARY KEY  (comment_id)
 ) TYPE=MyISAM;
 
 
@@ -471,8 +471,8 @@ INSERT INTO TBL_CONFIGURATION VALUES ('MAX_USER_VOTES', 5, 'The maximum number o
 INSERT INTO TBL_CONFIGURATION VALUES ('ATTACHMENT_PATH','attachments','Sub-dir of the INSTALLPATH - Needs to be writeable by the web process','string');
 INSERT INTO TBL_CONFIGURATION VALUES ('THEME','default','Which set of templates to use','multi');
 INSERT INTO TBL_CONFIGURATION VALUES ('ATTACHMENT_MAX_SIZE','2097152','Maximum size (in bytes) of an attachment. This will not override the settings in php.ini if php.ini has a lower limit.','string');
-INSERT INTO TBL_CONFIGURATION VALUES ('DATE_FORMAT','m-d-Y','See the <a href="http://www.php.net/date" target="_new">date page</a> in the PHP manual for more info','string');
-INSERT INTO TBL_CONFIGURATION VALUES ('TIME_FORMAT','g:i A','See the <a href="http://www.php.net/date" target="_new">date page</a> in the PHP manual for more info','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('DATE_FORMAT','m-d-Y','See the <a href="https://www.php.net/manual/en/datetime.format.php" target="_new">Date and Time formatting page</a> in the PHP manual for more info','string');
+INSERT INTO TBL_CONFIGURATION VALUES ('TIME_FORMAT','g:i A','See the <a href="https://www.php.net/manual/en/datetime.format.php" target="_new">Date and Time formatting page</a> in the PHP manual for more info','string');
 INSERT INTO TBL_CONFIGURATION VALUES ('LANGUAGE','en','The language file to use for warning and error messages','multi');
 INSERT INTO TBL_CONFIGURATION VALUES ('STYLE', 'default', 'The CSS file to use (color scheme)', 'multi');
 INSERT INTO TBL_CONFIGURATION VALUES ('SEND_MIME_EMAIL', '1', 'Whether to use MIME quoted-printable encoded emails or not', 'bool');
@@ -533,7 +533,7 @@ INSERT INTO TBL_RESOLUTION VALUES (2,'Not a bug','It''s not a bug -- it''s a fea
 INSERT INTO TBL_RESOLUTION VALUES (3,'Won''t Fix','This bug will stay',3);
 INSERT INTO TBL_RESOLUTION VALUES (4,'Deferred','We''ll get around to it later',4);
 INSERT INTO TBL_RESOLUTION VALUES (5,'Works for me','Can''t replicate the bug',5);
-INSERT INTO TBL_RESOLUTION VALUES (6,'Duplicate','',6);
+INSERT INTO TBL_RESOLUTION VALUES (6,'Duplicate','Duplicate bug',6);
 
 CREATE TABLE TBL_RESOLUTION_seq (
   id int unsigned auto_increment not null primary key);
@@ -628,7 +628,7 @@ CREATE TABLE TBL_ATTACHMENT_seq (
 CREATE TABLE TBL_BUG_seq (
   id int unsigned auto_increment not null primary key);
 
-CREATE TABLE TBL_COMMENT_seq (
+CREATE TABLE TBL_BUG_COMMENT_seq (
   id int unsigned auto_increment not null primary key);
 
 CREATE TABLE TBL_COMPONENT_seq (

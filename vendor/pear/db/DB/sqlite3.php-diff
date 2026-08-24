@@ -1,0 +1,18 @@
+747c747,761
+<         $errorcode = @$this->connection->lastErrorCode();
+---
+>         // PHP Fatal error:  Uncaught Error: Call to a member function lastErrorCode() on null
+>         //$errorcode = @$this->connection->lastErrorCode();
+>         if (is_object($this->connection)) {
+>             // valid when new SQLite3() connection object created successfuly
+>             $errorcode = @$this->connection->lastErrorCode();
+>         } else {
+>             // ex: occurs if path to SQLite3 database does not exist or invalid perms
+>             // or other error before new SQLite3() connection code is executed
+>             $errorInfo = error_get_last();
+>             if (is_array($errorInfo) && array_key_exists("message", $errorInfo)) {
+>                 $errorcode = "(errno = ".$errno."; message = [".$errorInfo['message']."])";
+>             } else {
+>                 $errorcode = "(errno = ".$errno."; message = [unknown])";
+>             }
+>         }

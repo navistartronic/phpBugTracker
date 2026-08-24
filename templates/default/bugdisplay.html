@@ -1,3 +1,5 @@
+<?php date_default_timezone_set(TZ_LOCAL); ?>
+
 <script type="text/JavaScript">
 <!--
 	warningString = '<?php echo translate("You must login to modify this bug"); ?>';
@@ -298,7 +300,7 @@
 	<table border="0" cellpadding="2" cellspacing="0" width="100%">
 	<?php if ($may_add_comment) { ?>
 	<tr class="noprint">
-		<td valign="top"><br><?php echo translate("Additional comments"); ?>:<br>
+		<td valign="top"><br><?php echo translate("Additional comments: ".translate("PRETAGS")); ?><br>
 		<textarea name="comments" rows="6" cols="79" wrap="virtual"><?php echo isset($_POST['comments']) ? $_POST['comments'] : ''; ?></textarea>
 		<br><br>
 		<div align="right">
@@ -397,3 +399,5 @@
     -->
     <?php } ?>
 </div>
+
+<?php date_default_timezone_set(TZ_DEFAULT); ?>

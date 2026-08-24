@@ -24,7 +24,7 @@
 
 define('RAWERROR', true);
 
-define('PHPBT_VERSION', '1.0rc6');
+define('PHPBT_VERSION', ($phpversion = @file_get_contents("VERSION")) === false ? "?" : $phpversion);
 @ini_set("session.save_handler", "files");
 
 // Installation hasn't been completed
@@ -39,36 +39,44 @@ if (!defined('DB_HOST')) {
 	exit();
 }
 
-// Stupid magic quotes stuff
-@ini_set("magic_quotes_runtime", 0);
-if (DB_TYPE=='oci8') {
-	@ini_set("magic_quotes_sybase", 1);
-}
-else {
-	@ini_set("magic_quotes_sybase", 0);
-}
-
 // Grab the global functions
 include ('inc/functions.php');
 
 // PEAR::DB
 @ini_set("display_errors", true);
-require_once(PEAR_PATH.'DB.php');
+
+require 'vendor/autoload.php';
+
 @ini_restore("display_errors");
+
 $dsn = array(
 	'phptype' => DB_TYPE,
 	'hostspec' => DB_HOST,
 	'database' => DB_DATABASE,
 	'username' => DB_USER,
-	'password' => DB_PASSWORD
+	'password' => DB_PASSWORD,
+	'charset'  => (defined('DB_CHARSET') ? DB_CHARSET : '')
 	);
+
+//  dsn optional settings: see pear/db/DB.php and specific db file, i.e. pear/db/DB/oci8.php etc. for dsn keywords
+$dsnOpts = array(
+               'persistent' => 1,  // 0 => no connection pooling - reuse prior; 1 => use connection pooling if available
+               'debug' => 0,       // mostly useless; 
+           );
+
+// https://pear.php.net/manual/en/package.database.db.db-result.numrows.php
+// Enable hack that makes numRows() work in Oracle:
+if (DB_TYPE == "oci8") {
+   $dsnOpts['portability'] = 8; // (see DB.php::define('DB_PORTABILITY_NUMROWS', 8))
+}
+
 /*
 ** Note confusing php5 E_STRICT error, which affects JPGraph use:
 ** "Non-static method DB::isError() should not be called statically "
 ** It's unclear what solution works for both php4 and php5.
 ** the documentation recommends PEAR::isError($db) which is also non-static
 */
-$db = DB::Connect($dsn);
+$db = DB::Connect($dsn, $dsnOpts);
 if (DB::isError($db)) {
 	die($db->message.'<br>'.$db->userinfo);
 }
@@ -161,7 +169,7 @@ class template {
 		$this->vars = array();
 	}
 
-	function render($content_template, $page_title, $wrap_file = '', $nowrap = false) {
+	function render($content_template, $page_title = '', $wrap_file = '', $nowrap = false) {
 		error_reporting(E_ALL ^ E_NOTICE); // Clobber notices in template output
 		extract($this->vars);
 		$path = defined('TEMPLATE_PATH')

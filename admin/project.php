@@ -340,7 +340,7 @@ function list_projects() {
 	$t->render('projectlist.html', translate("Project List"));
 }
 
-// $perm->check('Admin');
+$perm->check('Admin');
 
 if (isset($_REQUEST['op'])) {
 	switch($_REQUEST['op']) {

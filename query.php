@@ -184,7 +184,7 @@ function build_query($assignedto, $reportedby, $open, $bookmarked) {
 		// TODO: Change this to match the condition selected (see below for rlike, not rlike, etc.)
 		$bugs_with_comment = array(0);
 		if (!empty($description)) {
-			foreach ($db->getAll('SELECT bug_id FROM '.TBL_COMMENT.' WHERE comment_text LIKE \'%'.$description.'%\'') as $row) {
+			foreach ($db->getAll('SELECT bug_id FROM '.TBL_BUG_COMMENT.' WHERE comment_text LIKE \'%'.$description.'%\'') as $row) {
 				$bugs_with_comment[] = $row['bug_id'];
 			}
 		}
@@ -320,7 +320,7 @@ function list_items($assignedto = 0, $reportedby = 0, $open = 0, $bookmarked = 0
 	// New: only add expensive joins if the corresponding field is needed. Much faster.
 	$join_db_fields = array(
 		'attachments'	=> 'left join '.TBL_ATTACHMENT.' attachment on b.bug_id = attachment.bug_id',
-		'comments' 	=> 'left join '.TBL_COMMENT.' comment on b.bug_id = comment.bug_id',
+		'comments' 	=> 'left join '.TBL_BUG_COMMENT.' comment on b.bug_id = comment.bug_id',
 		'votes'		=> 'left join '.TBL_BUG_VOTE.' vote on b.bug_id = vote.bug_id',
 	);
 
@@ -359,7 +359,7 @@ function list_items($assignedto = 0, $reportedby = 0, $open = 0, $bookmarked = 0
 	}
 	// Save the query if requested
 	if (!empty($savedqueryname)) {
-		$savedquerystring = ereg_replace('&savedqueryname=.*(&?)', '\1', $_SERVER['QUERY_STRING']);
+		$savedquerystring = preg_replace('/&savedqueryname=.*(&?)/', '\1', $_SERVER['QUERY_STRING']);
 		$savedquerystring .= '&op=doquery';
 		if ($savedqueryoverride) { // Updating an existing query
 			$db->query("update ".TBL_SAVED_QUERY." set saved_query_string = ".$db->quote(stripslashes($savedquerystring))." where user_id = $u and saved_query_name = ".$db->quote(stripslashes($savedqueryname)));
@@ -397,6 +397,7 @@ function list_items($assignedto = 0, $reportedby = 0, $open = 0, $bookmarked = 0
 	$desired_fields = !empty($_SESSION['db_fields']) ?
 		$_SESSION['db_fields'] : $default_db_fields;
 
+	// bug_link_id is referenced in ./templates/default/buglist.html:36
 	$in_use_query_fields = array('b.bug_id as bug_link_id', 
 		'severity.severity_color', 'priority.priority_color');
     $in_use_join_fields = array();
@@ -435,6 +436,18 @@ function list_items($assignedto = 0, $reportedby = 0, $open = 0, $bookmarked = 0
 		// syslog(LOG_DEBUG,"query=$sql");
 		$_SESSION['queryinfo']['full_query_sql'] = $sql;
 		$t->assign('bugs', $db->getAll($db->modifyLimitQuery($sql, $llimit, $selrange)));
+
+		// Postgres quirk: postgres SQL requires 'sort_order' in the SELECT clause 
+		// which results in an extra table data <td></td> cell included in bug list.
+		// Fix by removing 'sort_order' field from the results list
+		if (DB_TYPE == "pgsql") {
+			foreach($t->vars['bugs'] as $k => $v) {
+				if (array_key_exists('sort_order', $v)) {
+					unset($v["sort_order"]);
+					$t->vars['bugs'][$k] = $v;
+				}
+			}
+		}
 	
 		sorting_headers($me, $headers, $order, $sort, "page=$page".
 			(!empty($paramstr) ? $paramstr : ''));
@@ -459,7 +472,6 @@ function list_items($assignedto = 0, $reportedby = 0, $open = 0, $bookmarked = 0
 }
 
 function dump_spreadsheet($fields, $titles, &$data) {
-	include_once('Spreadsheet/Excel/Writer.php');
 	$workbook = new Spreadsheet_Excel_Writer();
 	$workbook->send('buglist.xls');
 	error_reporting(0);

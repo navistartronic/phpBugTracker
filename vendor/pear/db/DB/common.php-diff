@@ -1,0 +1,2 @@
+1224a1225
+>             if (true) error_log(__FILE__."::".__FUNCTION__."():".__LINE__." calling this->simpleQuery(".$query.")");

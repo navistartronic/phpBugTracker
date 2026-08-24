@@ -109,7 +109,10 @@ function add_attachment($bugid, $description) {
 	}
 
 	if (!is_dir("$filepath/$projectid")) {
-		@mkdir("$filepath/$projectid", 0775);
+		if (!@mkdir("$filepath/$projectid", 0775)) {
+			show_attachment_form($bugid, translate("Couldn't create a project sub-directory in the attachment directory") . " (" .$filepath . "/" . $projectid . ")");
+			return;
+		}
 	}
 
 	if (!@move_uploaded_file($_FILES['attachment']['tmp_name'],
