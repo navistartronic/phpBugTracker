@@ -1,0 +1,65 @@
+<?php
+	if (!isset($group_name)) $group_name = '';
+	if (!isset($group_id))   $group_id = '';
+?>
+<script type="text/javascript" language="JavaScript">
+    var nameString = '<?php echo translate("Please enter a name"); ?>';
+
+    function checkForm(frm) {
+        if (frm.group_name.value == '') {
+            alert(nameString);
+            frm.group_name.focus();
+            return false;
+        }
+        return true;
+    }
+</script>
+<b><?php echo $page_title; ?></b> 
+<hr size="1">
+<form method="post" onsubmit="return checkForm(this)">
+    <table border='0'>
+        <?php if (!empty($error)) { ?>
+        <tr>
+            <td colspan="2" class="error">
+                <?php echo $error; ?>
+            </td>
+        </tr>
+        <?php } ?>
+        <tr>
+            <td align="right" valign="top">
+                Name:
+            </td>
+            <td>
+                <input type="text" size="20" maxlength="40" name="group_name" value="<?php echo stripslashes(htmlspecialchars($group_name)); ?>">
+            </td>
+        </tr>
+        <tr>
+            <td align="right" valign="top">
+                Permissions:
+            </td>
+        </tr>
+        <?php foreach($perms as $p) { ?>
+        <tr>
+            <td align="right" valign="top">
+                <input type="checkbox" name="perms[]" value="<?php echo $p['perm_id']; ?>"
+                <?php if (is_array($group_perms) && in_array($p['perm_id'], $group_perms)) echo "checked"; ?>>
+            </td>
+            <td>
+                <?php echo $p['perm_name']; ?>
+            </td>
+        </tr>
+        <?php } ?>
+        <tr>
+            <td align="right" valign="top">
+                &nbsp;
+            </td>
+            <td>
+                <input type='submit' value='<?php echo translate("Submit"); ?>'> 
+                <input type="hidden" name="op" value="save">
+                <input type="hidden" name="group_id" value="<?php echo $group_id; ?>"> 
+                <input type="hidden" name="use_js" value="<?php echo $_REQUEST['use_js']; ?>">             
+            </td>
+        </tr>
+    </table>
+</form>
+

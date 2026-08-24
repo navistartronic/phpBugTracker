@@ -1,0 +1,22 @@
+<table border="0" cellspacing="2" cellpadding="2">
+	<tr bgcolor="#eeeeee">
+		<th><?php echo translate("Who"); ?></th>
+		<th><?php echo translate("When"); ?></th>
+	</tr>
+	<?php if ($count = count($votes)) { ?>
+        <?php for ($i = 0; $i < $count; $i++) { ?>
+            <tr<?php if ($i % 2) echo ' class="alt" bgcolor="#dddddd"'; ?>>
+                <td><?php echo maskemail($votes[$i]['login']); ?></td>
+                <td><?php echo date(TIME_FORMAT.' '.DATE_FORMAT, $votes[$i]['created_date']); ?></td>
+            </tr>
+	    <?php } ?>
+    <?php } else { ?>
+		<tr>
+			<td colspan="2" align="center"><?php echo translate("No votes found for this bug"); ?></td>
+		</tr>
+	<?php } ?>
+</table>
+<br>
+<a href="<?php echo $_SERVER['PHP_SELF']; ?>?op=show&bugid=<?php echo $_GET['bugid'].$posinfo; ?>"><?php echo translate("Back to bug"); ?></a>
+<br>
+<br>

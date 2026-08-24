@@ -1,0 +1,87 @@
+<table border='0' width="100%" cellspacing="0" cellpadding="0">
+	<tr>
+		<td>
+			<?php echo translate("Bug"); ?> <b>#<?php echo $bug_id; ?></b>
+		</td>
+		<td>
+			<?php echo translate("Created"); ?>: <b><?php echo date(DATE_FORMAT, $created_date); ?></b>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<?php echo translate("Reporter"); ?>: <b><?php echo maskemail($reporter); ?></b>
+		</td>
+		<td><?php echo translate("Assigned to"); ?>: <b><?php echo maskemail($owner); ?></td>
+	</tr>
+	<tr>
+	  	<td><?php echo translate("Status"); ?>: <b><?php echo $status_name; ?></b></td>
+	  	<td><?php echo translate("Resolution"); ?>: <b><?php echo $resolution_name; ?></b></td>
+	</tr>
+	<tr>
+		<td>
+			<?php echo translate("Project"); ?>: <?php echo $project_name; ?>
+		</td>
+		<td>
+			<?php echo translate("Component"); ?>: <?php echo $component_name; ?>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<?php echo translate("Version"); ?>: <?php echo $version_name; ?>
+		</td>
+		<td>
+			<?php echo translate("Severity"); ?>: <?php echo $severity_name; ?>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<?php echo translate("Priority"); ?>: <?php echo $priority_name; ?>
+		</td>
+		<td colspan="2">
+			<?php echo translate("Operating System"); ?>: <?php echo $os_name; ?>
+		</td>
+	</tr>
+</table>
+<br>
+<?php echo translate("Summary"); ?>: <?php echo stripslashes($title); ?>
+<br>
+<?php echo translate("URL"); ?>: <?php echo $url; ?>
+<br>
+<?php echo translate("Depends on bugs"); ?>: 
+<?php for ($i = 0, $count = count($bug_dependencies); $i < $count; $i++) {
+    printf('<a href="bug.php?op=show&bugid=%d" class="%s">#%d</a>%s', 
+        $bug_dependencies[$i]['bug_id'], 
+        ($bug_dependencies[$i]['bug_open'] ? 'open_bug_number' : 'closed_bug_number'),
+        $bug_dependencies[$i]['bug_id'],
+        ($i < $count - 1 ? ', ' : ''));
+} ?>
+<br>
+<?php echo translate("Blocks bugs"); ?>: 
+<?php for ($i = 0, $count = count($bug_blocks); $i < $count; $i++) {
+    printf('<a href="bug.php?op=show&bugid=%d" class="%s">#%d</a>%s', 
+        $bug_blocks[$i]['bug_id'], 
+        ($bug_blocks[$i]['bug_open'] ? 'open_bug_number' : 'closed_bug_number'),
+        $bug_blocks[$i]['bug_id'],
+        ($i < $count - 1 ? ', ' : ''));
+} ?>
+<br>
+<br>
+<?php echo translate("Comments"); ?>:
+<hr size="1">
+<i>----- <?php echo translate("Posted by").' '.maskemail($reporter).' ('.date(TIME_FORMAT.' '.DATE_FORMAT, $created_date).')' ?>-----</i>
+<br>
+<?php echo stripslashes(format_comments(nl2br($description))) ?>
+<br>
+<br>
+<?php for ($i = 0, $ccount = count($comments); $i < $ccount; $i++) { ?>
+<i>----- <?php echo translate("Posted by").' '.maskemail($comments[$i]['login']).' ('.date(TIME_FORMAT.' '.DATE_FORMAT, $comments[$i]['created_date']).')'; ?>-----</i>
+<br>
+<?php echo stripslashes(format_comments(nl2br($comments[$i]['comment_text']))); ?>
+<br>
+<br>
+<?php } ?>
+
+<br>
+<a class="bugdisplaylinks" href="<?php echo $_SERVER['PHP_SELF']; ?>?op=show&bugid=<?php echo $bug_id; ?>"><?php echo translate("Back to bug"); ?></a>
+<br>
+<br>

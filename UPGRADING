@@ -1,0 +1,78 @@
+First, backup your database!  This upgrade should go smoothly, but
+if it doesn't, it's better to be safe than sorry.
+
+Upgrading from 0.9.1 to 1.0
+---------------------------
+PEAR and PEAR DB have been removed from the phpBT distribution. If you
+have a  system-wide install of PEAR  that is available  in the include
+path you  should set  the new PEAR_PATH  constant in config.php  to an
+empty string  ('').  To reuse the  old pear files from 0.9.1, copy the
+inc/pear/ directory from phpBT 0.9.1 and set PEAR_PATH to 'inc/pear/'.
+
+Following the steps below will upgrade your installation of phpBT.
+
+Using the directory where you unpacked the new set of files...
+1. Edit config-dist.php, changing the database settings to match those
+   from your old config.php (DB_*, TBL_PREFIX and PEAR_PATH constants).
+   Save config-dist.php as config.php.
+2. Load upgrade.php with your web browser.
+3. After running that script your installation has been upgraded.
+4. Either copy the files from the new installation over the old one, or
+   point your users to the new location.
+
+With phpBT 1.0 it is possible  to flag each Status as either "Open" or
+"Closed".   The  upgrade  script  leaves  all  bugs  open.   You  must
+therefore set your  statuses to either open or  closed by visiting the
+admin pages.  Default settings  should be modified so that "resolved",
+"closed",  and "verified"  are shown  as being  closed, and  all other
+statuses are set to open.
+
+
+Upgrading from 1.0 RCx to 1.0 RC6
+---------------------------------
+PEAR and PEAR DB have been removed from the phpBT distribution. If you
+have a  system-wide install of PEAR  that is available  in the include
+path you  should set  the new PEAR_PATH  constant in config.php  to an
+empty string  ('').  To reuse the  old pear files  from RCx,  copy the
+inc/pear/ directory and set PEAR_PATH to 'inc/pear/'.
+
+Using the directory where you unpacked the new set of files...
+1. Edit config-dist.php, changing the database settings to match those
+   from your old config.php (DB_*, TBL_PREFIX and PEAR_PATH constants).
+   Save config-dist.php as config.php.
+2. Either copy the files from the new installation over the old one, or
+   point your users to the new location.
+   
+There is no need to run the upgrade script.  The upgrade is complete.
+
+
+Upgrading from 1.0.1 to 1.0.2
+-----------------------------
+It is best to delete your old "config.php" and make a new one.  Start
+with "config-dist.php", and copy over your database connection parameters.
+Sorry this is not more automated.
+
+Run the "upgrade.php" script to upgrade your database from version 4
+to version 5.  The main new tables are for bookmarks and groups.
+
+Known issue: if you are logged in to your old version of phpBugTracker,
+you'll get "DB Error: syntax error" on various feature of the new phpBugTracker.
+Visit your "Personal Page", and click "Submit" to reset the bug list columns.
+
+
+Upgrading from 1.0.2 to 1.0.3
+-----------------------------
+There is no database update required.
+
+Note that "You must have magic_quotes_gpc set to On either in php.ini or in .htaccess".
+This has always been true, but you might miss this warning while upgrading.  This avoids
+SQL injection attacks.
+
+Upgrading from 1.0.3/4 to 1.0.5
+-------------------------------
+This is a seamless upgrade.
+1) Backup your existing directory for safety.
+2) Unzip the new code on top of the old.
+3) Edit CUR_DB_VERSION in your config.php and set it to 6.  For mysql this
+   will trigger creation of three new indexes for speed.
+4) Run "update.php".

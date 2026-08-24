@@ -1,0 +1,77 @@
+<html>
+<head>
+	<title><?php echo translate("phpBugTracker Login"); ?></title>
+	<link rel="StyleSheet" href="styles/default.css" type="text/css">
+</head>
+<body bgcolor="#ffffff" text="#000000" link="#004433" alink="#004433" vlink="#004433">
+<center>
+	<br>
+	<br>
+	<br>
+	<div align='center'><b><?php echo translate("User Login"); ?></b></div>
+	<br>
+
+	<form action='index.php' method='post'>
+	<table border="0">
+		<?php global $username, $emailsuccess; if (isset($username)) { ?>
+		<tr>
+			<td align='center'>
+				<?php if (!$emailsuccess) { ?>
+				<font color='#ff0000'>
+					<b><?php echo translate('Invalid login and/or password'); ?></b>
+				</font>
+				<?php } else { ?>
+				<font color='#0000ff'>
+					<b><?php echo translate("Your password has been mailed to you"); ?></b>
+				</font>
+				<?php } ?>
+			</td>
+		</tr>
+		<?php } ?>
+		<tr>
+			<td><?php echo EMAIL_IS_LOGIN ? translate("Email") : translate("Login") ?></td>
+		</tr>
+		<tr>
+			<td><input size="30" name='username' value='<?php if (isset($_sv["uname"])) print $_sv["uname"] ?>'></td>
+		</tr>
+		<tr>
+			<td><?php echo translate("Password"); ?>:</td>
+		</tr>
+		<tr>
+			<td><input size="30" type='password' name='password'></td>
+		</tr>
+		<tr>
+			<td align="right">
+				<input type="submit" value="Go">
+				<input type="submit" name="sendpass" value="<?php echo translate("Email my password"); ?>">
+				<input type="hidden" name="dologin" value="1">
+			</td>
+		</tr>
+		<?php if (!NEW_ACCOUNTS_DISABLED) { ?>
+		<tr>
+			<td align="center">
+				<hr size="1" color="#000000" width="140">
+				<br>
+				<br>
+				<a href="newaccount.php"><?php echo translate("Open a new account"); ?></a>
+			</td>
+		</tr>
+		<?php } ?>
+	</table>
+    <br/>
+    After login, you will be redirected to:<br/>
+    <?php echo $incoming_url ?>
+    <input type='hidden' name='redirect_url'  value='<?php echo $incoming_url ?>'>
+	</form>
+</center>
+</body>
+<script language="JavaScript">
+<!--
+  if (document.forms[0][0].value != '') {
+      document.forms[0][1].focus();
+  } else {
+      document.forms[0][0].focus();
+  }
+// -->
+</script>
+</html>

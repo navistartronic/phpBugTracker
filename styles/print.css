@@ -1,0 +1,133 @@
+/* Validated with http://jigsaw.w3.org/css-validator/ */
+body {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+	font-size: 12px;
+	color: #000000;
+	background: #ffffff;
+	}
+
+a:link      { text-decoration: none; color: #006699; }
+a:visited   { text-decoration: none; color: #006699; }
+a:active    { text-decoration: none }
+a:hover     { text-decoration: underline; }
+
+td {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+  font-size: 12px;
+	color: #000000;
+	}
+
+tr.alt {
+	background: #dddddd;
+	}
+
+th {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+  font-size: 12px;
+	color: #000000;
+	background-color: #eeeeee;
+	}
+
+th.selected {
+	font-weight: bold;
+	text-align: center;
+	background-color: #bbbbbb;
+	}
+
+select {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+	font-size: 12px;
+	}
+
+input {
+	font-size: 12px;
+	}
+
+input[type="file"] {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+	font-size: 12px;
+	}
+
+input[type="submit"] {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+	}
+
+input[type="reset"] {
+  font-family: "Arial","Helvetica","MS Sans Serif","Sans-Serif";
+	}
+
+textarea {
+	font-size: 12px;
+	}
+
+.banner {
+	text-align: center;
+	font-weight: bold;
+	padding: 1.5em;
+	font-size: 16px;
+}
+
+.error {
+	text-align: center;
+	font-weight: bold;
+	color: #ff0000;
+	padding-bottom: 0.1em;
+	}
+
+.result {
+	text-align: center;
+	font-weight: bold;
+	color: #0000ff;
+	padding-bottom: 0.1em;
+	}
+
+.nav {
+	vertical-align: middle;
+	background: #9999ff;
+	color: #ffffff;
+	font-family: "Arial", sans-serif;
+	font-size: 16px;
+	font-weight: bold;
+	display: none;
+	}
+
+.bottomnavinput {
+	vertical-align: middle;
+	color: #000000;
+	font-family: "Arial", sans-serif;
+	font-size: 10px;
+	}
+
+.maincontent {
+	vertical-align: top;
+	background: #ffffff;
+	color: #000000;
+	font-family: "Arial", sans-serif;
+	font-size: 12px;
+	padding: 5px;
+	}
+
+.info {
+	font-size: 10px;
+	color: #000000;
+	background:  #eeeeee;
+	border-width: 1px 1px 1px 1px;
+	border-color: #000000;
+	border-style: solid;
+	padding: 5px;
+	text-align: center;
+}
+
+.header-col { font-weight: bold; }
+.center-col { text-align: center; }
+
+.navlink {
+	color: #FFFFFF;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-weight: bold;
+}
+
+.bugdisplaylinks, .noprint {
+	display: none;
+}

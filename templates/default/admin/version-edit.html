@@ -1,0 +1,61 @@
+<?php
+	if (!isset($version_name)) $version_name = '';
+	if (!isset($active))       $active = '';
+	if (!isset($version_id))   $version_id = '';
+?>
+<script language="JavaScript">
+	var nameString = '<?php echo translate("Please enter a version"); ?>';
+
+	function checkForm(frm) {
+		if (frm.version_name.value == '') {
+			alert(nameString);
+			frm.version_name.focus();
+			return false;
+		}
+		return true;
+	}
+</script>
+&nbsp;<b><?php echo $page_title; ?></b>
+<hr size="1">
+<?php if($error) { ?><div class="error"><?php echo $error; ?></div><?php } ?>
+<form method="post" onSubmit="return checkForm(this)">
+<table border="0">
+    <tr>
+        <td valign="top">
+            <?php echo translate("Name"); ?>:
+        </td>
+        <td valign="top">
+            <input type="text" name="version_name" value="<?php echo stripslashes(htmlspecialchars($version_name)); ?>">
+        </td>
+    </tr>
+    <tr>
+        <td align="right" valign="top">
+            <?php echo translate("Sort Order"); ?>:
+        </td>
+        <td>
+            <input type="text" size="3" maxlength="3" name="sort_order" value="<?php echo $sort_order; ?>">
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">
+            <?php echo translate("Active"); ?>:
+        </td>
+        <td valign="top">
+            <input type="checkbox" name="active" value="1" <?php if($active || !$version_id) { ?>checked<?php } ?>>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">
+            &nbsp;
+        </td>
+        <td>
+            <input type="submit" value="<?php echo translate("Submit"); ?>">
+            <input type="hidden" name="version_id" value="<?php echo $version_id; ?>">
+            <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+            <input type="hidden" name="use_js" value="<?php echo $_REQUEST['use_js']; ?>">
+            <input type="hidden" name="op" value="save_version">
+        </td>
+    </tr>
+</table>
+</form>
+

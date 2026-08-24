@@ -1,0 +1,37 @@
+<table border="0" cellspacing="2" cellpadding="2" width="100%">
+	<tr bgcolor="#eeeeee">
+		<th><?php echo translate("Who"); ?></th>
+		<th><?php echo translate("What"); ?></th>
+		<th><?php echo translate("Old Value"); ?></th>
+		<th><?php echo translate("New Value"); ?></th>
+		<th><?php echo translate("When"); ?></th>
+	</tr>
+    <?php if ($count = count($history)) { ?>
+        <?php for ($i = 0; $i < $count; $i++) { ?>
+            <tr<?php if ($i % 2) echo ' class="alt" bgcolor="#dddddd"' ?>>
+                <td><?php echo maskemail($history[$i]['login']); ?></td>
+                <td><?php echo $history[$i]['changed_field']; ?></td>
+		<td>&nbsp;<?php if ($history[$i]['changed_field'] == translate("Assigned To") or $history[$i]['changed_field'] == translate("Reporter")) {
+					echo maskemail($history[$i]['old_value']);
+				} else {
+					echo $history[$i]['old_value'];
+				} ?></td>
+		<td>&nbsp;<?php if ($history[$i]['changed_field'] == translate("Assigned To") or $history[$i]['changed_field'] == translate("Reporter")) {
+					echo maskemail($history[$i]['new_value']);
+				} else {
+					echo $history[$i]['new_value'];
+				} ?></td>
+
+                <td align="center"><?php echo date(TIME_FORMAT.' '.DATE_FORMAT, $history[$i]['created_date']); ?></td>
+            </tr>
+	    <?php } ?>
+    <?php } else { ?>
+		<tr>
+			<td colspan="5" align="center"><?php echo translate("No history found for this bug"); ?></td>
+		</tr>
+	<?php } ?>
+</table>
+<br>
+<a href="<?php echo $_SERVER['PHP_SELF']; ?>?op=show&bugid=<?php echo $_GET['bugid'].$posinfo; ?>"><?php echo translate("Back to bug"); ?></a>
+<br>
+<br>

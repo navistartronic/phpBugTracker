@@ -1,0 +1,51 @@
+<form method="post">
+<div class="error">
+<?php if (!$has_excel) { ?>
+	<?php echo translate("Install PEAR package Spreadsheet_Excel_Writer for bug list download support"); ?><br/>
+<?php } ?>
+<?php if (!get_magic_quotes_gpc()) { ?>
+	<?php echo translate("Warning: magic_quotes_gpc is OFF"); ?>
+<?php } ?><br/>
+<?php if (!get_magic_quotes_runtime()) { ?>
+	<?php echo translate("Warning: magic_quotes_runtime is OFF"); ?>
+<?php } ?><br/>
+</div>
+
+<table border="0" width="100%">
+	<tr>
+		<td valign="top">
+			<b>&nbsp;<?php echo $page_title; ?></b>
+			<hr size="1">
+			<table border="0">
+				<tr>
+					<th><?php echo translate("Variable"); ?></th>
+					<th><?php echo translate("Value"); ?></th>
+					<th><?php echo translate("Information"); ?></th>
+				</tr>
+				<?php for ($i = 0, $count = count($vars); $i < $count; $i++) { ?>
+				<tr<?php if ($i % 2) echo ' class="alt"'; ?>>
+					<td><?php echo $vars[$i]['varname']; ?></td>
+					<td>
+						<?php if ($vars[$i]['vartype'] == "multi") { ?>
+							<select name="<?php echo $vars[$i]['varname']; ?>"><?php build_select($vars[$i]['varname'], $vars[$i]['varvalue']); ?></select>
+						<?php } elseif ($vars[$i]['vartype'] == "bool") { ?>
+							<input type="radio" name="<?php echo $vars[$i]['varname']; ?>" value="1"<?php if ($vars[$i]['varvalue']) echo ' checked'; ?>> Yes 
+							<input type="radio" name="<?php echo $vars[$i]['varname']; ?>" value="0"<?php if (!$vars[$i]['varvalue']) echo ' checked'; ?>> No 
+						<?php } else { ?>
+							<input type="text" name="<?php echo $vars[$i]['varname']; ?>" value="<?php echo $vars[$i]['varvalue']; ?>">
+						<?php } ?>
+					</td>
+					<td><?php echo translate($vars[$i]['description']); ?></td>
+				</tr>
+				<?php } ?>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td align="center">
+			<input type="reset">
+			<input type="submit" name="submit" value="<?php echo translate("Submit"); ?>">
+		</td>
+	</tr>
+</table>
+</form>

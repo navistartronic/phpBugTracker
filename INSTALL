@@ -1,0 +1,55 @@
+Ok, here's the quick and dirty install instructions:
+
+Required:
+You must have the PEAR library manager and Pear::DB installed (See http://pear.php.net/).
+PEAR usually comes with a command line client called "pear".  Try "pear list"
+to show installed packages:
+
+xxxx> pear list
+Installed packages, channel pear.php.net:
+=========================================
+Package                  Version State
+Archive_Tar              1.3.2   stable
+Console_Getopt           1.2.2   stable
+DB                       1.7.12  stable
+OLE                      0.5     beta
+PEAR                     1.5.4   stable
+Spreadsheet_Excel_Writer 0.9.1   beta
+Structures_Graph         1.0.2   stable
+ 
+Then:
+1. Copy the directory tree to a location suitable for serving web pages.
+	 
+2. With your web browser, go the location where you installed the package. 
+   You will be presented with a web page that will help you configure and 
+   install the application.  You may need to download and copy a
+   new "config.php" into the installation location.
+
+3. If you get a blank page, check your web server's error logs for php errors.
+
+4. After completing the installation, login, set up a project,
+   and start reporting bugs.
+
+Mandantory:
+You must have magic_quotes_gpc set to On either in php.ini or in .htaccess
+(see http://www.php.net/manual/en/configuration.php for more info).
+
+Optional:
+Install JpGraph for home page graphs (See http://www.aditus.nu/jpgraph/).  If you get error "Non-static method DB::isError() should not be called statically", then edit the JpGraph configuration to set "CATCH_PHPERRMSG" to false.
+
+Install Spreadsheet_Excel_Writer for bug list download support ("pear install Spreadsheet_Excel_Writer-beta").
+
+
+Performance Note:
+phpBugTracker benefits a lot from a query cache, and will be unusable without one.
+Most mysql platforms come with one enabled by default. If not, play with:
+
+    SHOW VARIABLES LIKE 'query_cache_size';
+    SHOW STATUS LIKE '%qcache%';
+    SET  GLOBAL query_cache_size=256000;
+
+mysql is the most tested database platform, followed by postgres, and then oracle.
+
+
+Problems?
+The majority of problems reported are with PEAR DB not working.  Edit PEAR_TEST.php to help work out these problems, before attempting the bug tracker.
