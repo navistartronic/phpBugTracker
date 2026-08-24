@@ -11,6 +11,12 @@
 	if (!isset($site))        $site = '';
 	if (!isset($os))          $os = '';
 
+	if (!isset($bugdate)) {
+            date_default_timezone_set(TZ_LOCAL); 
+            $bugdate = date('Y-m-d', time()); 
+            date_default_timezone_set(TZ_DEFAULT);
+	}   
+
 	$reporter = $reporter ? $reporter : $u
 ?>
 		<form action="bug.php" method="post" enctype="multipart/form-data">
@@ -22,6 +28,14 @@
 					</td>
 				</tr>
 				<?php } ?>
+				<tr>
+					<td align="right" valign="top">
+						Bug Date
+					</td>
+					<td>
+						<input type="date" name="bugdate" min="2000-01-01" value="<?php echo $bugdate; ?>">
+					</td>
+				</tr>
 				<tr>
 					<td align="right" valign="top">
 						<?php echo translate("Project"); ?>:

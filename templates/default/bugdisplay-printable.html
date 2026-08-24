@@ -1,3 +1,4 @@
+<?php date_default_timezone_set(TZ_LOCAL); ?>
 <table border='0' width="100%" cellspacing="0" cellpadding="0">
 	<tr>
 		<td>
@@ -70,13 +71,13 @@
 <hr size="1">
 <i>----- <?php echo translate("Posted by").' '.maskemail($reporter).' ('.date(TIME_FORMAT.' '.DATE_FORMAT, $created_date).')' ?>-----</i>
 <br>
-<?php echo stripslashes(format_comments(nl2br($description))) ?>
+<?php echo stripslashes(format_comments($description)) ?>
 <br>
 <br>
 <?php for ($i = 0, $ccount = count($comments); $i < $ccount; $i++) { ?>
 <i>----- <?php echo translate("Posted by").' '.maskemail($comments[$i]['login']).' ('.date(TIME_FORMAT.' '.DATE_FORMAT, $comments[$i]['created_date']).')'; ?>-----</i>
 <br>
-<?php echo stripslashes(format_comments(nl2br($comments[$i]['comment_text']))); ?>
+<?php echo stripslashes(format_comments($comments[$i]['comment_text'])); ?>
 <br>
 <br>
 <?php } ?>
@@ -85,3 +86,4 @@
 <a class="bugdisplaylinks" href="<?php echo $_SERVER['PHP_SELF']; ?>?op=show&bugid=<?php echo $bug_id; ?>"><?php echo translate("Back to bug"); ?></a>
 <br>
 <br>
+<?php date_default_timezone_set(TZ_DEFAULT); ?>

@@ -314,7 +314,7 @@ function do_changedfields($userid, &$buginfo, $cf = array(), $comments = '') {
 
 	// If there are new comments grab the comments immediately before the latest
 	if ($comments or $newbug) {
-		$rs = $db->limitQuery('select u.login, c.comment_text, c.created_date from '.TBL_COMMENT.' c, '.TBL_AUTH_USER." u where bug_id = {$buginfo['bug_id']} and c.created_by = u.user_id order by created_date desc", 0, 2);
+		$rs = $db->limitQuery('select u.login, c.comment_text, c.created_date from '.TBL_BUG_COMMENT.' c, '.TBL_AUTH_USER." u where bug_id = {$buginfo['bug_id']} and c.created_by = u.user_id order by c.created_date desc", 0, 2);
 		$rs->fetchInto($row);
 		$t->assign(array(
 			'newpostedby' => $row['login'],
@@ -375,18 +375,32 @@ function do_changedfields($userid, &$buginfo, $cf = array(), $comments = '') {
 			'assignedto_stat' => $assignedtostat
 			));
 
-		require_once('./inc/htmlMimeMail/htmlMimeMail.php');
-		$mail = new htmlMimeMail();
-		$mail->setText($t->fetch($template));
-		$mail->setFrom(ADMIN_EMAIL);
-		$mail->setReturnPath(RETURN_PATH);
-		$mail->setSubject("[Bug {$buginfo['bug_id']}] ".
-			//($newbug ? 'New' : 'Changed').' - '.
-				stripslashes((!empty($cf['title']) ? $cf['title'] : $buginfo['title'])));
-		if (SMTP_EMAIL) {
-			$mail->setSMTPParams(SMTP_HOST, SMTP_PORT, SMTP_HELO, SMTP_AUTH, SMTP_AUTH_USER, SMTP_AUTH_PASS);
-		}
-		$mail->send($maillist, SMTP_EMAIL ? 'smtp' : 'mail');
+                $mSubject = "[Bug {$buginfo['bug_id']}] ".
+				// ($newbug ? 'New' : 'Changed').' - '.
+				stripslashes((!empty($cf['title']) ? $cf['title'] : $buginfo['title']));
+
+		// Original code does not send any attachments with the email though class htmlMimeMail has methods to,
+		// nor did it handle and errors returned from PHP mail() or their smtp code.
+		// Here we check and log it if an error.
+		// Now qp_mail() returns mixed value: boolean or string
+
+                $rc = qp_mail($maillist, $mSubject, $t->fetch($template), ADMIN_EMAIL);
+                if ((is_bool($rc) && $rc === false) || (is_string($rc) && strlen($rc))) {
+                    // How to communicate failure to user? no existing code to alert user at this point
+                    // When USE_PHPMAILER is false: 
+                    //   mail was sent via phpBugTracker's class htmlMimeMail.php via php mail() or phpBugTracker smtp.php and
+                    //   qp_mail() returns boolean: true => success, false => error
+                    // -or-
+                    // When USE_PHPMAILER is true: 
+                    //   mail was sent via class PHPMailer via PHPMailer and
+                    //   qp_mail() returns string: empty string => success; non-empty string => error msg
+                    if (is_bool($rc)) {
+                       $e = $rc ? "true" : "false";
+                    } else {
+                       $e = $rc;
+                    }
+                    error_log("phpBugTracker:".basename(__FILE__).":".__FUNCTION__."::".__LINE__.": error sending email To: [".implode(',',$maillist)."]; Subject: [".$mSubject."]; qp_mail() returns error msg: [".$e."]");
+                }
 	}
 }
 
@@ -627,7 +641,7 @@ function update_bug($bugid = 0) {
 
 	if ($comments) {
 		// $comments = strip_tags($comments); -- Uncomment this if you want no <> content in the comments
-		$db->query("insert into ".TBL_COMMENT." (comment_id, bug_id, comment_text, created_by, created_date) values (".$db->nextId(TBL_COMMENT).", $bugid, ".$db->quote(stripslashes($comments)).", $u, $now)");
+		$db->query("insert into ".TBL_BUG_COMMENT." (comment_id, bug_id, comment_text, created_by, created_date) values (".$db->nextId(TBL_BUG_COMMENT).", $bugid, ".$db->quote(stripslashes($comments)).", $u, $now)");
 	}
 
 	if (is_closed($status_id)) {
@@ -750,7 +764,7 @@ function do_form($bugid = 0) {
 	}
 	
 	// Use the selected reporter, if specified
-	$reporter = ($reporter and is_numeric($reporter)) ? $reporter : $u;
+	$reporter = (isset($reporter) and is_numeric($reporter)) ? $reporter : $u;
 
 	// Check to see if this bug's component has an owner and should be assigned
     // If we aren't using voting to promote, then auto-promote to New
@@ -764,6 +778,20 @@ function do_form($bugid = 0) {
 
 	$bugid = $db->nextId(TBL_BUG);
 
+	// bug date - we are being posted here from bug.php/bugform.html
+	if (empty($bugdate)) {
+       		$error = 'Please select the date for this bug';
+       		show_form($bugid, $error);
+       		return;
+	}
+	if (isset($bugdate)) {
+   		if (($timestamp = strtotime($bugdate)) === false) {
+       			$error = 'Please select a valid date for this bug';
+       			show_form($bugid, $error);
+       			return;
+   		}
+   		$now = strtotime($bugdate . " ". date("H:i:s", time()));
+	}
 	$db->query('insert into '.TBL_BUG.' (bug_id, title, description, url, severity_id, priority, status_id, assigned_to, created_by, created_date, last_modified_by, last_modified_date, project_id, site_id, database_id, version_id, component_id, os_id, browser_string) values ('.$bugid.', '.join(', ', array($db->quote(stripslashes($title)), $db->quote(stripslashes($description)), $db->quote(stripslashes($url)))).', '.(int)$severity.', '.(int)$priority.', '.(int)$status.', '.$owner.', '.$reporter.', '.$now.', '.$u.', '.$now.', '.$project.', '.(int)$site.', '.(int)$database.', '.(int)$version.', '.(int)$component.', '.(int)$os.', '.$db->quote(stripslashes($_SERVER['HTTP_USER_AGENT'])).')');
 	$buginfo = $db->getRow('select * from '.TBL_BUG." where bug_id = $bugid");
 	do_changedfields($u, $buginfo);
@@ -829,7 +857,7 @@ function show_bug_printable($bugid) {
 		));
 
 	// Show the comments
-	$t->assign('comments', $db->getAll('select comment_text, c.created_date, login from '.TBL_COMMENT.' c, '.TBL_AUTH_USER." where bug_id = $bugid and c.created_by = user_id order by c.created_date"));
+	$t->assign('comments', $db->getAll('select comment_text, c.created_date, login from '.TBL_BUG_COMMENT.' c, '.TBL_AUTH_USER." where bug_id = $bugid and c.created_by = user_id order by c.created_date"));
 	$t->render('bugdisplay-printable.html', translate("View Bug"), 'wrap-popup.html');
 }
 
@@ -893,7 +921,7 @@ function prev_next_links($bugid, $pos) {
 function show_bug($bugid = 0, $error = array()) {
 	global $db, $me, $t, $u, $QUERY, $restricted_projects, $auth, $perm;
 
-	if (!ereg('^[0-9]+$',$bugid) or
+	if (!preg_match('/^[0-9]+$/',$bugid) or
 		!$row = $db->getRow(sprintf($QUERY['bug-show-bug'], $bugid,
 			$restricted_projects))) {
 		show_text(translate("That bug does not exist, or you don't have permission to view it."), true);
@@ -967,7 +995,7 @@ function show_bug($bugid = 0, $error = array()) {
 	// Show the comments
 	$t->assign(array(
 		'attachments' => $attachments,
-		'comments' => $db->getAll('select comment_text, c.created_date, login'.' from '.TBL_COMMENT.' c, '.TBL_AUTH_USER." where bug_id = $bugid and c.created_by = user_id order by c.created_date")
+		'comments' => $db->getAll('select comment_text, c.created_date, login'.' from '.TBL_BUG_COMMENT.' c, '.TBL_AUTH_USER." where bug_id = $bugid and c.created_by = user_id order by c.created_date")
 		));
 
 	if (isset($_REQUEST['pos']) && is_numeric($_REQUEST['pos'])) {

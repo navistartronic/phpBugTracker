@@ -1,0 +1,4 @@
+397c397
+<             $arr = @oci_fetch_array($result,OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+---
+>             $arr = @oci_fetch_array($result,OCI_NUM+OCI_RETURN_NULLS+OCI_RETURN_LOBS);

@@ -10,7 +10,15 @@
 		</div>
 		<br>
 		<div align="center">
-			<?php printf(translate("<br>The installation script could not connect to the database <b>%s</b> on the host <b>%s</b> using the specified username and password.<br><br>Please check these details are correct and that the database already exists then retry. You can also try the supplied <a href=\"PEAR_TEST.php\">PEAR_TEST.php</a> script."), $params['db_database'], $params['db_host']); ?>
+<?php 
+if ($params['db_type'] == "sqlite3") {
+    // sqlite does not require host or user information to connect
+    printf(translate("<br>The installation script could not create and/or connect to the SQLite3 database <b>%s</b><br><br>Check that:<br><ol><li>path to database directory exists</li><li>parent directory (and/or database if exists) is writeable by the webserver</li><li>SELinux or AppArmour is configured to allow writes to the directory</li></ol>"), $params['db_database']);
+} else {
+    printf(translate("<br>The installation script could not connect to the database <b>%s</b> on the host <b>%s</b> using the specified username and password.<br><br>Please check these details are correct and that the database already exists then retry."), $params['db_database'], $params['db_host']);
+}
+    printf(translate("<br><br>You can also try the supplied <a href=\"PEAR_TEST.php\">PEAR_TEST.php</a> script in which you have to first edit the database connection parameters in that script, and then try it."), $params['db_database'], $params['db_host']); 
+?>
 			<br>
 			<br>
 			<?php

@@ -11,6 +11,8 @@ require_once(dirname(__FILE__) . '/mimePart.php');
 
 class htmlMimeMail
 {
+        var $errors;
+
 	/**
 	* The html part of the message
     * @var string
@@ -89,7 +91,7 @@ class htmlMimeMail
 * if supplied.
 */
 
-	function htmlMimeMail()
+	function __construct()
 	{
 		/**
         * Initialise some variables.
@@ -128,10 +130,10 @@ class htmlMimeMail
 		/**
         * Defaults for smtp sending
         */
-		if (!empty($GLOBALS['HTTP_SERVER_VARS']['HTTP_HOST'])) {
-			$helo = $GLOBALS['HTTP_SERVER_VARS']['HTTP_HOST'];
-		} elseif (!empty($GLOBALS['HTTP_SERVER_VARS']['SERVER_NAME'])) {
-			$helo = $GLOBALS['HTTP_SERVER_VARS']['SERVER_NAME'];
+		if (!empty($_SERVER['HTTP_HOST'])) {
+			$helo = $_SERVER['HTTP_HOST'];
+		} elseif (!empty($_SERVER['SERVER_NAME'])) {
+			$helo = $_SERVER['SERVER_NAME'];
 		} else {
 			$helo = 'localhost';
 		}
@@ -177,11 +179,11 @@ class htmlMimeMail
 	function setCrlf($crlf = "\n")
 	{
 		if (!defined('CRLF')) {
-			define('CRLF', $crlf, true);
+			define('CRLF', $crlf);
 		}
 
 		if (!defined('MAIL_MIMEPART_CRLF')) {
-			define('MAIL_MIMEPART_CRLF', $crlf, true);
+			define('MAIL_MIMEPART_CRLF', $crlf);
 		}
 	}
 
@@ -332,7 +334,7 @@ class htmlMimeMail
 	function _findHtmlImages($images_dir)
 	{
 		// Build the list of image extensions
-		while (list($key,) = each($this->image_types)) {
+		foreach ($this->image_types as $key => $junk) {
 			$extensions[] = $key;
 		}
 
@@ -395,8 +397,8 @@ class htmlMimeMail
 	function &_addTextPart(&$obj, $text)
 	{
 		$params['content_type'] = 'text/plain';
-		$params['encoding']     = $this->build_params['text_encoding'];
-		$params['charset']      = $this->build_params['text_charset'];
+		$params['encoding']     = isset($this->build_params['text_encoding']) ? $this->build_params['text_encoding'] : "";
+		$params['charset']      = isset($this->build_params['text_charset']) ? $this->build_params['text_charset'] : "";
 		if (is_object($obj)) {
 			return $obj->addSubpart($text, $params);
 		} else {
@@ -503,7 +505,7 @@ class htmlMimeMail
 	function buildMessage($params = array())
 	{
 		if (!empty($params)) {
-			while (list($key, $value) = each($params)) {
+			foreach($params as $key => $value) {
 				$this->build_params[$key] = $value;
 			}
 		}
@@ -607,8 +609,8 @@ class htmlMimeMail
 			$this->headers  = array_merge($this->headers, $output['headers']);
 
 			// Add message ID header
-			srand((double)microtime()*10000000);
-			$message_id = sprintf('<%s.%s@%s>', base_convert(time(), 10, 36), base_convert(rand(), 10, 36), !empty($GLOBALS['HTTP_SERVER_VARS']['HTTP_HOST']) ? $GLOBALS['HTTP_SERVER_VARS']['HTTP_HOST'] : $GLOBALS['HTTP_SERVER_VARS']['SERVER_NAME']);
+			srand((int) ((double)microtime()*10000000));
+			$message_id = sprintf('<%s.%s@%s>', base_convert(time(), 10, 36), base_convert(rand(), 10, 36), !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']);
 			$this->headers['Message-ID'] = $message_id;
 
 			$this->is_built = true;
@@ -654,16 +656,16 @@ class htmlMimeMail
 			case 'mail':
 				$subject = '';
 				if (!empty($this->headers['Subject'])) {
-					$subject = $this->_encodeHeader($this->headers['Subject'], $this->build_params['head_charset']);
+					$subject = $this->_encodeHeader($this->headers['Subject'], isset($this->build_params['head_charset']) ? $this->build_params['head_charset'] : "");
 					unset($this->headers['Subject']);
 				}
 
 				// Get flat representation of headers
 				foreach ($this->headers as $name => $value) {
-					$headers[] = $name . ': ' . $this->_encodeHeader($value, $this->build_params['head_charset']);
+					$headers[] = $name . ': ' . $this->_encodeHeader($value, isset($this->build_params['head_charset']) ? $this->build_params['head_charset'] : "");
 				}
 
-				$to = $this->_encodeHeader(implode(', ', $recipients), $this->build_params['head_charset']);
+				$to = $this->_encodeHeader(implode(', ', $recipients), isset($this->build_params['head_charset']) ? $this->build_params['head_charset'] : "");
 
 				if (!empty($this->return_path)) {
 					$result = @mail($to, $subject, $this->output, implode(CRLF, $headers), '-f' . $this->return_path);
@@ -683,15 +685,21 @@ class htmlMimeMail
 			case 'smtp':
 				require_once(dirname(__FILE__) . '/smtp.php');
 				require_once(dirname(__FILE__) . '/RFC822.php');
-				$smtp = &smtp::connect($this->smtp_params);
-				if ($smtp->status != SMTP_STATUS_CONNECTED) {
-					$this->errors = $smtp->errors;
-					return false;
-				}
+
+				// PHP8
+				// Convert (htmlMimeMail.php) and smtp.php from static to object access:
+				// Too problematic for PHP8 backport/refractor; see also smtp.php
+				//$smtp = &smtp::connect($this->smtp_params);
+				$smtp = new smtp($this->smtp_params);
+                                if ($smtp->status != SMTP_STATUS_CONNECTED) {
+                                        $this->errors = $smtp->errors;
+                                        return false;
+                                }
 
 				// Parse recipients argument for internet addresses
 				foreach ($recipients as $recipient) {
-					$addresses = Mail_RFC822::parseAddressList($recipient, $this->smtp_params['helo'], null, false);
+					$m = new Mail_RFC822;
+					$addresses = $m->parseAddressList($recipient, array_key_exists('helo', $this->smtp_params) ? $this->smtp_params['helo'] : "", null, false);
 					foreach ($addresses as $address) {
 						$smtp_recipients[] = sprintf('%s@%s', $address->mailbox, $address->host);
 					}
@@ -701,20 +709,21 @@ class htmlMimeMail
 
 				// Get flat representation of headers, parsing
 				// Cc and Bcc as we go
-				foreach ($this->headers as $name => $value) {
-					if ($name == 'Cc' OR $name == 'Bcc') {
-						$addresses = Mail_RFC822::parseAddressList($value, $this->smtp_params['helo'], null, false);
-						foreach ($addresses as $address) {
-							$smtp_recipients[] = sprintf('%s@%s', $address->mailbox, $address->host);
-						}
-					}
-					if ($name == 'Bcc') {
-						continue;
-					}
-					$headers[] = $name . ': ' . $this->_encodeHeader($value, $this->build_params['head_charset']);
-				}
-				// Add To header based on $recipients argument
-				$headers[] = 'To: ' . $this->_encodeHeader(implode(', ', $recipients), $this->build_params['head_charset']);
+                                // Cc and Bcc as we go
+                                foreach ($this->headers as $name => $value) {
+                                        if ($name == 'Cc' OR $name == 'Bcc') {
+                                                $addresses = Mail_RFC822::parseAddressList($value, $this->smtp_params['helo'], null, false);
+                                                foreach ($addresses as $address) {
+                                                        $smtp_recipients[] = sprintf('%s@%s', $address->mailbox, $address->host);
+                                                }
+                                        }
+                                        if ($name == 'Bcc') {
+                                                continue;
+                                        }
+                                        $headers[] = $name . ': ' . $this->_encodeHeader($value, isset($this->build_params['head_charset']) ? $this->build_params['head_charset']:"");
+                                }
+                                // Add To header based on $recipients argument
+                                $headers[] = 'To: ' . $this->_encodeHeader(implode(', ', $recipients), isset($this->build_params['head_charset']) ? $this->build_params['head_charset']:"");
 				
 				// Add headers to send_params
 				$send_params['headers']    = $headers;
@@ -725,7 +734,7 @@ class htmlMimeMail
 				if (isset($this->return_path)) {
 					$send_params['from'] = $this->return_path;
 				} elseif (!empty($this->headers['From'])) {
-					$from = Mail_RFC822::parseAddressList($this->headers['From']);
+					$from = $m->parseAddressList($this->headers['From']);
 					$send_params['from'] = sprintf('%s@%s', $from[0]->mailbox, $from[0]->host);
 				} else {
 					$send_params['from'] = 'postmaster@' . $this->smtp_params['helo'];

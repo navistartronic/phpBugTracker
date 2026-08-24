@@ -3,6 +3,7 @@
 	if (!isset($resolution_desc)) $resolution_desc = '';
 	if (!isset($sort_order))      $sort_order = '';
 	if (!isset($resolution_id))   $resolution_id = '';
+	if (!isset($use_js))          $use_js = '';
 ?>
 <script type="text/javascript" language="JavaScript">
     var nameString = '<?php echo translate("Please enter a name"); ?>';
@@ -66,7 +67,7 @@
             <td>
                 <input type='submit' name='submit' value='<?php echo translate("Submit"); ?>'>
                 <input type="hidden" name="resolution_id" value="<?php echo $resolution_id; ?>"> 
-                <input type="hidden" name="use_js" value="<?php echo $_REQUEST['use_js']; ?>">  
+                <input type="hidden" name="use_js" value="<?php echo isset($_REQUEST['use_js']) ? $_REQUEST['use_js'] : "" ; ?>">  
                 <input type="hidden" name="op" value="save"> 
             </td>
         </tr>

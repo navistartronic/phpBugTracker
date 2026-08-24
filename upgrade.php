@@ -147,6 +147,7 @@ function upgrade() {
 					log_query("create table ".TBL_PROJECT_PERM." ( project_id INT4 NOT NULL DEFAULT '0', user_id INT4 NOT NULL DEFAULT '0' )");
 				}
 				break;
+			case 'sqlite3' :
 			case 'mysqli' :
 			case 'mysql' :
 				if (false) {

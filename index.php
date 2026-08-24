@@ -24,6 +24,12 @@
 
 include 'include.php';
 
+if (USE_JPGRAPH || (defined('USE_BOTH_JPGRAPH_AND_TABLE_STATS') && ((int) USE_BOTH_JPGRAPH_AND_TABLE_STATS > 0))) { 
+    require 'vendor/autoload.php';
+}
+USE mitoteam\jpgraph\MtJpGraph;
+USE JpGraph\Graph; // Original JpGraph classes
+
 function grab_data($restricted_projects) {
 	global $db;
 
@@ -44,56 +50,63 @@ function grab_data($restricted_projects) {
 }
 
 function build_image($restricted_projects) {
-	if (!include_once(JPGRAPH_PATH.'jpgraph.php')) {
-		return '<span class="error">'.translate("Unable to load JPGraph").' ('.JPGRAPH_PATH.'jpgraph.php'.')</span>';
-	}
-	if (!include_once(JPGRAPH_PATH.'jpgraph_pie.php')) {
-		return '<span class="error">'.translate("Unable to load JPGraph pie class").'</span>';
-	}
 
+	if (USE_JPGRAPH || (defined('USE_BOTH_JPGRAPH_AND_TABLE_STATS') && ((int) USE_BOTH_JPGRAPH_AND_TABLE_STATS > 0))) { 
+            // required to work
+            MtJpGraph::load(['pie', 'bar', 'line']); #load with several modules
+        }
+  
 	$stats = grab_data($restricted_projects);
 	$totalbugs = 0;
+        // templates/default/index.html "Quick Stats" table code loop has no conditionals in its loop, it just generates the table.
+        // Here, build_image(), we had conditionals causing the html Quick Stats and jpgraph to not match up.
+        // So, just loop it w/o and conditionals like the html "Quick Stats" table generation does so both match each other:
 	foreach ($stats as $statid => $stat) {
-        // Skip closed bugs
-        if (!$stat['open']) {
-            continue;
+        if (array_key_exists('count', $stat)) {
+            $count = $stat['count'];
+        } else {
+            // there are no bugs with this status assigned to it
+            $count = 0;
         }
-        // Count all open statuses
-		if ($stat['count']) {
-			$data[] = $stat['count'];
-			$legend[] = "{$stat['name']} ({$stat['count']})";
-			$targ[] = "query.php?op=doquery&status[]=$statid";
-			$alts[] = $stat['name'];
-			$totalbugs += $stat['count'];
-		}
+        $data[] = $count;
+        $legend[] = "{$stat['name']} ({$count})";
+        $targ[] = "query.php?op=doquery&status[]=$statid";
+        $alts[] = $stat['name'];
+        $totalbugs += $count;
 	}
 
 	if (!$totalbugs) {
 		return translate("No bugs found");
 	}
 
-	// Create the Pie Graph.
-	$graph = new PieGraph(350,200,"bug_cat_summary");
-	include('inc/is_a.php');
-	// Make sure that the library loaded and we could create the library object
-	if (is_a($graph,'PieGraph')) {
-		$graph->SetShadow();
-	
-		// Set A title for the plot
-		$graph->title->Set(translate("Bug Summary"));
-		$graph->title->SetFont(FF_FONT1,FS_BOLD);
-	
-		$graph->legend->Pos(0.03, 0.5, 'right', 'center');
+        // Create the Pie Graph.
+        $graph = new \PieGraph(450,260,"bug_cat_summary");
+        include('inc/is_a.php');
+        // Make sure that the library loaded and we could create the library object
+        if (is_a($graph,'PieGraph')) {
+		// displays text stats at bottom of image
 		// Create
-		$p1 = new PiePlot($data);
+		$p1 = new \PiePlot($data);
 		$p1->value->SetFormat("%d%%");
 		$p1->value->Show();
 		$p1->SetLegends($legend);
 		$p1->SetCSIMTargets($targ,$alts);
-		$p1->SetCenter(0.25);
+		//$p1->SetCenter(0.5,0.45); // Set the center point for the PiePlot
+		$p1->SetSize(0.22);         // Pie chart size
+		// Specify the position of the labels for each slice as a fraction of the radius.
+		// Puts each pie slice percentage inside the circle; otherwise outside the perimeter
+		//$p1->SetSize(0.22);     // Pie chart size (when inside pie)
+		//$p1->SetLabelPos(0.6);  // (when inside pie)
+
+		// Set A title for the plot
 		$graph->Add($p1);
+		$graph->title->Set(translate("Bug Summary"));
+		$graph->title->SetFont(FF_FONT1,FS_BOLD);
+		$graph->title->SetMargin(5);
+		$graph->subtitle->Set(translate("_________________________________________________________"));
+		$graph->legend->Pos(0.15, 0.88, 'left', 'center');  // at bottom of Pie chart NICE
+		$graph->legend->SetColumns(3);
 		$graph->Stroke('jpgimages/'.GenImgName());
-	
 		return $graph->GetHTMLImageMap("myimagemap").
 			"<img align=\"right\" src=\"jpgimages/".GenImgName()."\" ISMAP USEMAP=\"#myimagemap\" border=0>";
 	} else {

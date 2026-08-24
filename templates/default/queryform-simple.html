@@ -44,6 +44,12 @@ function checkSavedQueries(frm) {
 
 //-->
 </script>
+<?php
+if (!isset($order))    $order   = "";
+if (!isset($project))  $project = "";
+if (!isset($sort))     $sort    = "";
+if (!isset($status))   $status  = "";
+?>
     <form method="get" action="query.php" name="query" onSubmit="return checkSavedQueries(this)">
 	<table>
 		<tr valign="baseline">

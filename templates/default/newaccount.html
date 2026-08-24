@@ -1,4 +1,11 @@
 <h2><?php echo translate("Create a new account"); ?></h2>
+<?php
+$login     = array_key_exists('login', $_POST)     ? $_POST['login'] : "";
+$email     = array_key_exists('email', $_POST)     ? $_POST['email'] : "";
+$firstname = array_key_exists('firstname', $_POST) ? $_POST['firstname'] : "";
+$lastname  = array_key_exists('lastname', $_POST)  ? $_POST['lastname'] : "";
+
+?>
 <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post">
 <input type="hidden" name="createaccount" value="1">
 <table border="0">
@@ -11,24 +18,24 @@
 		<tr>
 			<td align="right"><?php echo translate("Login"); ?>: </td>
 			<td>
-				<input type="text" name="login" value="<?php echo stripslashes(htmlspecialchars($_POST['login'])); ?>">
+				<input type="text" name="login" value="<?php echo stripslashes(htmlspecialchars($login)); ?>">
 			</td>
 		</tr>
 	<?php } ?>
 	<tr>
 		<td align="right"><?php echo translate("Email"); ?>: </td>
-		<td><input type="text" name="email" value="<?php echo stripslashes(htmlspecialchars($_POST['email'])); ?>"></td>
+		<td><input type="text" name="email" value="<?php echo stripslashes(htmlspecialchars($email)); ?>"></td>
 	</tr>
 	<tr>
 		<td align="right"><?php echo translate("First Name"); ?> (<?php echo translate("optional"); ?>):</td>
 		<td>
-			<input type="text" name="firstname" value="<?php echo stripslashes(htmlspecialchars($_POST['firstname'])); ?>">
+			<input type="text" name="firstname" value="<?php echo stripslashes(htmlspecialchars($firstname)); ?>">
 		</td>
 	</tr>
 	<tr>
 		<td align="right"><?php echo translate("Last Name"); ?> (<?php echo translate("optional"); ?>):</td>
 		<td>
-			<input type="text" name="lastname" value="<?php echo stripslashes(htmlspecialchars($_POST['lastname'])); ?>">
+			<input type="text" name="lastname" value="<?php echo stripslashes(htmlspecialchars($lastname)); ?>">
 		</td>
 	</tr>
 </table>

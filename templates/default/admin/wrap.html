@@ -10,8 +10,9 @@
 <body topmargin="0" leftmargin="0" marginheight="0" marginwidth="0">
 <div class="nav">
     <div class="header_image">
-        <img name="title" src="<?php echo $template_path ?>/../images/title.gif" width="500" height="50" border="0" alt="" hspace="0" vspace="0">
+        <img name="title" src="<?php echo $template_path ?>/../images/title-2025.png" width="500" height="50" border="0" alt="" hspace="0" vspace="0">
     </div>
+        <div style="float:right;padding-right:1em;font-size:80%;"><?php echo "Version ". PHPBT_VERSION ?></div>
     <div class="header_search">
         <form action="../bug.php">
             <input type="hidden" name="op" value="show">
@@ -26,7 +27,7 @@
         <li><a href="user.php" class="navlink"><?php echo translate("Users"); ?></a></li>
         <li><a href="group.php" class="navlink"><?php echo translate("Group Permisions"); ?></a></li>
         <li><a href="group.php?op=list-roles" class="navlink"><?php echo translate("Role Permisions"); ?></a></li>
-        <li><a href="../docs/html/userguide.html" class="navlink"><?php echo translate("Documentation"); ?></a></li>
+        <li><a href="../docs/html/index.html" class="navlink"><?php echo translate("Documentation"); ?></a></li>
         <li><a href="../index.php" class="navlink"><?php echo translate("User Tools"); ?></a></li>
     </ul>
     <ul id="tabnav">

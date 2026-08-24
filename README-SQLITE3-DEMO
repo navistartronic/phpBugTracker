@@ -1,0 +1,42 @@
+phpBugTracker "2025" SQLite3 DEMO
+=================================
+
+phpBugTracker "2025" includes an demo SQLite3 database ready for use and is 
+preloaded with demo accounts, projects, and bug reports.
+
+To try the demo, do this:
+
+  1. Copy config.php-sqlite3-demo-database to config.php
+     The config file will use the db/phpbugtracker-demo.sqlite3 database.
+
+     $ cp config.php-sqlite3-demo-database config.php
+
+  2. Edit setperms.sh accordingly and run it: 
+     $ vi setperms.sh
+     root# bash ./setperms.sh
+
+  3.  Now point your browser to where you installed phpBugTracker:  
+
+         URL http://localhost/path/to/phpbugtracker
+
+When you are ready to do an install for real, delete config.php and
+reload the browser and the install will begin.
+
+
+These below are the login accounts for use with the SQLite3 demo database:
+
+   login                      password        group
+   -------------------------  --------------  ---------------
+   admin@rhel10.com           admin           admin
+   demo@example.com           demo            user
+   jimmy@megalosoft.com       jimmy           developer
+   analyst@starfleet.com      analyst         developer
+   commander@starfleet.com    commander       developer
+
+The database is located in the ./db directory and if you have the SQLite3
+package installed you can explore the phpBugTracker database from the cli:
+
+   $ cd db
+   $ sqlite3 phpbugtracker-demo.sqlite3
+   sqlite> .quit
+

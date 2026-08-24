@@ -34,13 +34,14 @@
 			} ?>
 		</td>
 		<td valign="top" align="right"> 
-			<?php if (USE_JPGRAPH) {
+	<?php if (USE_JPGRAPH || (defined('USE_BOTH_JPGRAPH_AND_TABLE_STATS') && ((int) USE_BOTH_JPGRAPH_AND_TABLE_STATS > 0))) { 
 				if (!is_writeable('jpgimages')) {
 					echo translate("The image path 'jpgimages' is not writeable");
 				} else {
 					echo build_image($restricted_projects);
 				}
-			} else { ?>
+	} ?>
+	<?php if (!USE_JPGRAPH || (defined('USE_BOTH_JPGRAPH_AND_TABLE_STATS') && ((int) USE_BOTH_JPGRAPH_AND_TABLE_STATS > 0))) {  ?>
 				<b><?php echo translate("Quick Stats"); ?></b>
 				<br><br>
 				<table border="1" cellspacing="0" cellpadding="2">
@@ -56,7 +57,7 @@
 						</tr>
 					<?php } ?>
 				</table>
-			<?php } ?>
+	<?php } ?>
 		</td>
 	</tr>
 </table>

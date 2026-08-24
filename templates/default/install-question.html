@@ -1,7 +1,10 @@
+<?php
+$VERSION = ($phpversion = @file_get_contents("VERSION")) === false ? "?" : $phpversion;
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Trasitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-	<title><?php echo translate("phpBugTracker Installation"); ?></title>
+	<title><?php echo translate("phpBugTracker Installation")." ".$VERSION; ?></title>
 	<link rel="StyleSheet" href="styles/default.css" type="text/css">
 	<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
 </head>
@@ -29,7 +32,7 @@
 			</table>
 		</td>
 		<td valign="top">
-			<div class="banner"><?php echo translate("phpBugTracker Installation"); ?></div>
+			<div class="banner"><?php echo translate("phpBugTracker Installation")." ".$VERSION; ?></div>
 			<p><div class="error">Already installed</div></p>
 			<p>It seems as if phpBugTracker is already installed in
 			this database and with this table prefix.</p>

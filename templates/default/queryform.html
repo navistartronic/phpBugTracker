@@ -54,6 +54,32 @@ function checkSavedQueries(frm) {
 
 //-->
 </script>
+<?php
+if (!isset($closed_end_date))   $closed_end_date = "";
+if (!isset($closed_start_date)) $closed_start_date = "";
+if (!isset($database))          $database = "";
+if (!isset($description))       $description = "";
+if (!isset($description_type))  $description_type = "";
+if (!isset($email1))            $email1 = "";
+if (!isset($emailfield1))       $emailfield1 = "";            // is mixed can be both string and array
+if (!isset($emailsearch1))      $emailsearch1 = "";
+if (!isset($emailtype1))        $emailtype1 = "";
+if (!isset($end_date))          $end_date = "";
+if (!isset($order))             $order = "";
+if (!isset($os))                $os = "";
+if (!isset($priority))          $priority = "";
+if (!isset($project))           $project = "";
+if (!isset($resolution))        $resolution = "";
+if (!isset($severity))          $severity = "";
+if (!isset($site))              $site = "";
+if (!isset($sort))              $sort = "";
+if (!isset($status))            $status = "";
+if (!isset($start_date))        $start_date = "";
+if (!isset($title))             $title = "";
+if (!isset($title_type))        $title_type = "";
+if (!isset($url))               $url = "";
+if (!isset($url_type))          $url_type = "";
+?>
 <form method="get" action="query.php" name="query" onSubmit="return checkSavedQueries(this)">
     <table>
 	<tr>
@@ -119,11 +145,11 @@ function checkSavedQueries(frm) {
 					    <option <?php if ($emailtype1 == '=') echo "selected"; ?> value="="><?php echo translate("exact"); ?></option>
 					</select></td>
 				    <td><input type="checkbox" name="emailfield1[]" value="owner"
-					<?php if (!$emailfield1 || (count($emailfield1) && in_array("owner", $emailfield1))) echo "checked"; ?>>
+					<?php if ((is_string($emailfield1) && strlen($emailfield1)) || is_array($emailfield1) && in_array("owner", $emailfield1)) echo "checked"; ?>>
 					<?php echo translate("Assigned To"); ?></td>
 				</tr><tr>
 				    <td><input type="checkbox" name="emailfield1[]" value="reporter"
-					<?php if (count($emailfield1) && in_array("reporter", $emailfield1)) echo "checked"; ?>>
+					<?php if (is_array($emailfield1) && in_array("reporter", $emailfield1)) echo "checked"; ?>>
 					<?php echo translate("Reporter"); ?></td>
 				</tr>
 			    </table></td>

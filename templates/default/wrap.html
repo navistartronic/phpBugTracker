@@ -11,13 +11,18 @@
     <link rel="alternate stylesheet" type="text/css" href="styles/black.css"   title="black"/>
     <link rel="alternate stylesheet" type="text/css" href="styles/print.css"   title="print"/>
 
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
 	<?php if (defined('CHARSET')) echo '<META http-equiv="Content-Type" content="text/html; charset='.CHARSET.'">'; ?>
 </head>
 <body>
 <div class="nav">
 	<div class="header_image">
-		<img name="title" src="<?php echo $template_path ?>/images/title.gif" width="500" height="50" border="0" alt="" hspace="0" vspace="0">
+		<img name="title" src="<?php echo $template_path ?>/images/title-2025.png" width="500" height="50" border="0" alt="" hspace="0" vspace="0">
 	</div>
+	<div style="float:right;padding-right:1em;font-size:80%;"><?php echo "Version ". PHPBT_VERSION ?></div>
 	<div class="header_search">
 		<form action="bug.php">
 			<input type="hidden" name="op" value="show">
@@ -33,7 +38,7 @@
 		<li><a href="query.php?op=query&form=advanced"><?php echo translate("Advanced Query"); ?></a></li>
 		<li><a href="report.php"><?php echo translate("View Reports"); ?></a></li>
 		<?php if (!NEW_ACCOUNTS_DISABLED && empty($_SESSION['uid'])) { ?><li><a href="newaccount.php"><?php echo translate("Create a New Account"); ?></a></li><?php } ?>
-		<li><a href="docs/html/userguide.html"><?php echo translate("Read Documentation"); ?></a></li>
+		<li><a href="docs/html/index.html"><?php echo translate("Read Documentation"); ?></a></li>
 		<?php if (isset($perm) && $perm->have_perm_proj()) { ?><li><a href="admin/project.php"><?php echo translate("Administration Tools"); ?></a></li><?php } ?>
 	</ul>
 </div>

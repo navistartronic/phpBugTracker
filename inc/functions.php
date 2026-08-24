@@ -22,6 +22,11 @@
 // ------------------------------------------------------------------------
 // $Id: functions.php,v 1.74 2008/09/20 21:14:00 brycen Exp $
 
+// Use PHPMailer otherwise original code using htmlMimeMail class
+if (defined('USE_PHPMAILER') && (bool) USE_PHPMAILER === true) {
+        require 'vendor/autoload.php';
+}
+
 // Set the domain if gettext is available
 if (false && is_callable('gettext')) {
 	define('USE_GETTEXT', true);
@@ -84,11 +89,11 @@ function build_select($box, $selected = '', $project = 0, $limit = false) {
 			'resolution' => $querystart.$querymid,
 			'project' => $perm->have_perm('Admin')
 					? $querystart." where ".
-					($selected ? "(active > 0 or project_id in (".$db->quote($selected)."))" : 'active > 0').
+					($selected ? "(active > 0 or project_id in (".$db->quote(is_array($selected) ? implode(',',$selected): $selected)."))" : 'active > 0').
 					" order by {$box}_name"
 					: $querystart." where project_id not in (".$db->quote($restricted_projects).")".
 					" and ".
-					($selected ? " (active > 0 or project_id in (".$db->quote($selected)."))" : 'active > 0').
+					($selected ? "(active > 0 or project_id in (".$db->quote(is_array($selected) ? implode(',',$selected): $selected)."))" : 'active > 0').
 					" order by {$box}_name",
 			'component' => $querystart." where project_id = ".$db->quote($project)." and active = 1 order by sort_order, {$box}_name",
 			'version' => $querystart." where project_id = ".$db->quote($project)." and active = 1 order by sort_order, {$box}_id desc",
@@ -128,7 +133,7 @@ function build_select($box, $selected = '', $project = 0, $limit = false) {
 					$row[$box.'_id']."\"$sel>".$row[$box.'_name'].'</option>';
 			}
 			break;
-		case 'database': $text = '<option value="0">None</option>';
+		case 'database': //$text = '<option value="0">None</option>'; // either enable this or have a at least 1 record in database_server table
 		case 'severity':
 		case 'priority': 
 		case 'status':
@@ -292,7 +297,7 @@ function build_select($box, $selected = '', $project = 0, $limit = false) {
 			break;
 		default :
 			$deadarray = $select[$box];
-			while(list($val,$item) = each($deadarray)) {
+			foreach ($deadarray as $val => $item) {
 				if (is_array($selected) && count($selected) && in_array($val, $selected)) {
 					$sel = ' selected';
 				} elseif ($selected == $val and $selected != '') {
@@ -383,7 +388,7 @@ function multipages($nr, $page, $urlstr) {
 function sorting_headers($url, $headers, $order, $sort, $urlstr = '') {
 	global $t;
 
-	while(list($k, $v) = each($headers)) {
+	foreach ($headers as $k => $v) {
 		$theader[$k]['url'] = "$url?order=$v&sort=".
 		($order == $v ? ($sort == 'asc' ? 'desc' : 'asc') : 'asc').
 			($urlstr ? '&'.$urlstr : '');
@@ -454,7 +459,7 @@ function delimit_list($delimiter, $ary) {
 /// Check the validity of an email address
 /// (From zend.com user russIndr)
 function bt_valid_email($email) {
-	return eregi('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,6})$', $email);
+	return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 ///
@@ -464,7 +469,7 @@ function maskemail($email) {
 	if (HIDE_EMAIL && empty($_SESSION['uid'])) {
 		return '******';
 	} elseif (MASK_EMAIL) {
-		return str_replace('@', ' at ', str_replace('.', ' döt ', $email));
+		return str_replace('@', ' at ', str_replace('.', ' dot ', $email));
 	} else {
 		return $email;
 	}
@@ -524,6 +529,7 @@ function db_concat() {
 	$pieces = func_get_args();
 
 	switch(DB_TYPE) {
+		case 'sqlite3' :
 		case 'mysqli' :
 		case 'mysql' : $retstr = 'concat('. delimit_list(', ', $pieces).')'; break;
 		case 'pgsql' :
@@ -547,7 +553,7 @@ function dump($var, $title = '') {
 }
 
 // Handle a database error
-function handle_db_error(&$obj) {
+function handle_db_error($obj) {
 	if (!defined('RAWERROR')) {
 		define('RAWERROR', false);
 	}
@@ -556,7 +562,7 @@ function handle_db_error(&$obj) {
 	} else {
 		show_text(htmlentities($obj->message).'<br>'.htmlentities($obj->userinfo));
 	}
-	error_log($obj->message." -- ".htmlentities($obj->userinfo));
+	error_log("phpBugTracker:".basename(__FILE__).":".__FUNCTION__."::".__LINE__.": ".$obj->message." -- ".htmlentities($obj->userinfo));
 	exit;
 }
 
@@ -580,7 +586,7 @@ function qp_enc($input, $line_max = 76) {
 	// Do "dos2unix" and split $input into $lines by end of line
 	$lines = split("\n", str_replace("\r\n", "\n", $input));
 	// Loop throught $lines
-	while( list(, $line) = each($lines) ) {
+	foreach ($lines as $line) {
 		// Trim each line from right side
 		$line = rtrim($line);
 		// Place line length to $linlen
@@ -621,39 +627,204 @@ function qp_enc($input, $line_max = 76) {
 }
 
 // mailer with use of quoted-printable encoding (if configured so)
-function qp_mail($to, $subject = 'No subject', $body, $from = ADMIN_EMAIL) {
+function qp_mail($to, $subject = 'No subject', $body = '', $from = ADMIN_EMAIL) {
 	global $STRING;
 
-	require_once('./inc/htmlMimeMail/htmlMimeMail.php');
-	$mail = new htmlMimeMail();
-	$mail->setSubject($subject);
-	$mail->setFrom($from);
-	$mail->setReturnPath(RETURN_PATH);
-	$recipient[] = $to;
+        // qp_mail returns codes/values:
+        //    When using htmlMimeMail and USE_SMTP=false: uses PHP's mail() function
+        //          on success: qp_mail() returns true
+        //          on failure: qp_mail() returns false (but you don't know why)
+        //    When using htmlMimeMail and USE_SMTP=true: uses phpBugTracker's built in SMTP server
+        //           on success: qp_mail() returns true  (got a smtp 250 (success))
+        //           on failure: qp_mail() returns false (smtp error or connect failure)
+        //    When using USE_PHPMAILER=true:  
+        //          on success: qp_mail() returns empty string 
+        //          on failure: qp_mail() returns phpMailer error message
 
-	if (SEND_MIME_EMAIL) {
-		// If configured to send MIME encoded emails
-		if (false/*HTML_EMAIL*/) {
-			$mail->setHtmlEncoding("quoted-printable");
-			$mail->setHtml($body);
-		}
-		else {
-			$mail->setTextEncoding("quoted-printable");
-			$mail->setText($body);
-		}
-	}
-	else {
-		$mail->setTextEncoding("8bit");
-		$mail->setText($body);
-	}
+        if (defined('USE_PHPMAILER') && (bool) USE_PHPMAILER === true) {
+           // PHPMailer 5.2.x is not namespaced
+           // PHPMailer 6.x/7.x is namespaced with "namespace PHPMailer\PHPMailer;"
+           // thus we have to reference each accordingly:
+            try {
+                   if (USE_PHPMAILER_V5 === true) {
+                       $phpmailerClass = '\PHPMailer'; 
+                   } else {
+                       $phpmailerClass = '\PHPMailer\PHPMailer\PHPMailer';
+                   }
+                   $mail = new $phpmailerClass();
 
-	if (SMTP_EMAIL) {
-		$mail->setSMTPParams(SMTP_HOST, SMTP_PORT, SMTP_HELO, SMTP_AUTH, SMTP_AUTH_USER, SMTP_AUTH_PASS);
-	}
+                   // Server Configuration
+                   if (SMTP_EMAIL) {
+                       $mail->isSMTP();                    //Send using SMTP
 
-	$retval = $mail->send($recipient, SMTP_EMAIL ? 'smtp' : 'mail');
+                       // set smtp debug level
+                       //$mail->SMTPDebug = SMTP::DEBUG_OFF; //Enable verbose debug output
+                       // class smtp.php validates/handles SMTPDebug value so we do not have to here other than check that it is an integer
+                       $PHPMAILER_DEBUG_LEVEL  = 
+                          (defined('PHPMAILER_DEBUG_LEVEL') && 
+                          (int) PHPMAILER_DEBUG_LEVEL >= 0) ? (int) PHPMAILER_DEBUG_LEVEL : 0; /* = SMTP::DEBUG_OFF */
 
-	// Returns true if mail is accepted for delivery, otherwise return false
+                       if (USE_PHPMAILER_V5 === true) {
+                           $smtpClass = '\SMTP'; 
+                       } else {
+                           $smtpClass = '\PHPMailer\PHPMailer\SMTP';
+                       }
+
+                       $smtp = new $smtpClass();
+
+                       switch ($PHPMAILER_DEBUG_LEVEL) {
+                           case 1: 
+                                   $smtpDebugLevel = $smtp::DEBUG_CLIENT;
+                                   break;
+                           case 2: 
+                                   $smtpDebugLevel = $smtp::DEBUG_SERVER;
+                                   break;
+                           case 3: 
+                                   $smtpDebugLevel = $smtp::DEBUG_CONNECTION;
+                                   break;
+                           case 4: 
+                                   $smtpDebugLevel = $smtp::DEBUG_LOWLEVEL;
+                                   break;
+                            case 0:
+                            default: 
+                                   $smtpDebugLevel = $smtp::DEBUG_OFF;
+                                   break;
+                         }
+                       $mail->SMTPDebug = $smtpDebugLevel;
+
+                       // set debug output and format
+                       // class smtp.php validates/handles Debugoutput value so we do not have to here
+                       $mail->Debugoutput = (defined('PHPMAILER_DEBUG_OUTPUT') && strlen(PHPMAILER_DEBUG_OUTPUT) > 0) ? PHPMAILER_DEBUG_OUTPUT : "error_log";
+                       $mail->Host      = SMTP_HOST;       //Set the SMTP server to send through
+                       $mail->Port      = SMTP_PORT;       //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+                       if (SMTP_AUTH) {
+                           // Whether to enable TLS encryption automatically if a server supports it, even if `SMTPSecure` is not set to 'tls'.
+                           // CRITICAL & CRUCIAL ->is SMTP() => true turn off SMTPAutoTLS until you configure what?
+                           $mail->SMTPAutoTLS  = false;
+                           //$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;   //Enable implicit TLS encryption (port 465) or SSL
+                           $mail->SMTPAuth     = SMTP_AUTH;                     //Enable SMTP authentication
+                           $mail->Username     = SMTP_AUTH_USER;                //SMTP username
+                           $mail->Password     = SMTP_AUTH_PASS;                //SMTP password
+                       }
+                   } else {
+                       $mail->isMail();
+                   }
+        
+                   // From
+                   $mail->setFrom($from, 'phpBugTracker Administrator');
+
+                   // If the Sender property is not explicitly set, PHPMailer defaults to 
+                   //   using the From address as the Return-Path
+                   // The Return-Path header is crucial for handling bounce messages, as 
+                   //   mail servers send notifications about undeliverable emails to this address.
+                   // To specify a different email address for the Return-Path (e.g., for bounce processing),
+                   //    you can set the Sender property:
+                   // Set the envelope From: sender for Return-Path: if different than From:
+                   if (defined('RETURN_PATH') && strlen(RETURN_PATH)) {
+                       $mail->Sender = RETURN_PATH; 
+                   }
+        
+                   // Reply to
+                   if (defined('REPLY_TO') && strlen(REPLY_TO) && defined('REPLY_TO_NAME')) {
+                       $mail->addReplyTo(REPLY_TO, REPLY_TO_NAME);
+                   }
+        
+                   // Recipients
+                   // qp_mail() "to" variable can be a string or an array
+                   if (is_string($to)) {
+        	       $maillist = array($to);
+                   } else {
+                       $maillist = $to;
+                   }
+                      
+                   foreach($maillist as $key => $value) {
+                      if ($useCarbonCopy = 1) {
+                          // a single To: with multiple CC:'s
+                          if ($key == 0) {
+                             // To: should be assign to user, if it is set
+                             $mail->addAddress($value, '');     // 2nd arg is add a recipient name if known
+                          } else {
+                             $mail->addCC($value);
+                          }
+                      } else {
+                             // Everyone is a To:
+                             $mail->addAddress($value, '');     // 2nd arg is add a recipient name if known
+                      }
+                   }
+        
+                   // Subject
+                   $mail->Subject = htmlspecialchars_decode($subject);
+        
+                   // Content
+                   // Body must be assigned at a minium if not using msgHTML()
+                   //$mail->Body    = $body;   // html version or plain text
+                   //$mail->AltBody = $body;   // plain text version of html body
+                   // if the message is in HTML format, calling msgHTML($body) will also handle the HTML->text conversion for you
+        	   if (SEND_MIME_EMAIL) {   /* text/plain or 8bit text/html & text/plain multipart */
+                       // If the message body is HTML, msgHTML() will handle the HTML->text conversion automatically and send both formats.
+                       // phpBugTracker does not send HTML mail, nor attachments.
+                       $mail->msgHTML($body);
+                   } else {
+                       // plain text only
+                       $mail->Body = $body;
+                   }
+        
+                   // Attachments -- not implemented in phpBugTracker; just a placeholder
+                   //$mail->addAttachment('/var/tmp/file.tar.gz');         //Add attachments
+                   //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    //Optional attachment name
+                   //$mail->addAttachment('./templates/default/images/title-2025.png', 'phpBugTracker 2025 new logo');
+        
+                   $mail->send();
+                   $retval = "";
+               } catch (Exception $e) {
+                   // let caller handle any displaying of errors or sucess
+                   $retval = $mail->ErrorInfo;
+               }
+        } else {
+		// use original phpBugTracker SMTP/MIME mail that works, but is
+		// probably RFC non-compliant and out of date in many regards.
+        	require_once('./inc/htmlMimeMail/htmlMimeMail.php');
+        	$mail = new htmlMimeMail();
+        	//$mail->setSubject($subject);
+        	$mail->setSubject(htmlspecialchars_decode($subject));
+        	$mail->setFrom($from);
+        	$mail->setReturnPath(RETURN_PATH);
+        	$mail->setHeader('X-Mailer', 'phpBugTracker Mailer');
+                   if (is_string($to)) {
+        	       $recipient[]= array($to);
+                   } else {
+        	       $recipient = $to;
+
+                   }
+        
+        	if (SEND_MIME_EMAIL) {
+        		// If configured to send MIME encoded emails
+        		if (false/*HTML_EMAIL*/) {
+        			$mail->setHtmlEncoding("quoted-printable");
+        			$mail->setHtml($body);
+        		}
+        		else {
+        			$mail->setTextEncoding("quoted-printable");
+        			$mail->setText($body);
+        		}
+        	}
+        	else {
+        		$mail->setTextEncoding("8bit");
+        		$mail->setText($body);
+        	}
+        
+        	if (SMTP_EMAIL) {
+        		$mail->setSMTPParams(SMTP_HOST, SMTP_PORT, SMTP_HELO, SMTP_AUTH, SMTP_AUTH_USER, SMTP_AUTH_PASS);
+        	}
+        
+		// Returns true if mail is accepted for delivery, otherwise return false
+		// config.php:SMTP_EMAIL false: via PHP mail(): true if accepted for delivery, otherwise false
+		// config.php:SMTP_EMAIL true : via inc/htmlMimeMail/smtp.php::send() : true if received SMTP 250 code (sucess) otherwise false
+		// (2025/08/20: Caller never checked the return code from mail->send(), now we do)
+		$retval = $mail->send($recipient, SMTP_EMAIL ? 'smtp' : 'mail');
+        }
+
+	// Returns boolean or string depending on htmlMimeMail.php or PHPMailer
 	return ($retval);
 }
 
@@ -725,7 +896,7 @@ function delete_bug($bug_id) {
 	$db->query("delete from ".TBL_BUG_CC." where bug_id = ".$db->quote($bug_id));
 	
 	// Comments
-	$db->query("delete from ".TBL_COMMENT." where bug_id = ".$db->quote($bug_id));
+	$db->query("delete from ".TBL_BUG_COMMENT." where bug_id = ".$db->quote($bug_id));
 	
 	// Dependencies
 	$db->query("delete from ".TBL_BUG_DEPENDENCY.

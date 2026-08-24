@@ -22,6 +22,8 @@
 // ------------------------------------------------------------------------
 // $Id: newaccount.php,v 1.37 2008/01/28 00:10:40 brycen Exp $
 
+// invoked/used by users when users are allowed to create their own account signup 
+
 define('NO_AUTH', 1);
 include 'include.php'; 
 
@@ -33,12 +35,21 @@ function do_form() {
 		return;
 	}
 
-	if (!EMAIL_IS_LOGIN && !$_POST['login'] = trim($_POST['login'])) 
+	// field size is dictated by TBL_AUTH_USER.{email,login} 
+	// files affected by this change: newaccount.php, admin/user.php, templates/default/admin/user-edit.html
+	$dbLoginEmailMaxCharSize = 60;
+
+	if (!EMAIL_IS_LOGIN && !$_POST['login'] = trim($_POST['login'])) {
 		$error = translate("Please enter a login");
-	elseif (!$_POST['email'] or !bt_valid_email($_POST['email'])) 
+	} elseif (!EMAIL_IS_LOGIN && strlen($_POST['login'])> $dbLoginEmailMaxCharSize) {
+		$error = translate("Maximum length for a login name is ".$dbLoginEmailMaxCharSize." characters");
+	} elseif (!$_POST['email'] or !bt_valid_email($_POST['email'])) {
 		$error = translate("Please enter a valid email");
-	elseif ($db->getOne("select user_id from ".TBL_AUTH_USER." where email = '{$_POST['email']}' ".(!empty($_POST['login']) ? "or login = '{$_POST['login']}'" : '')))
+	} elseif (strlen($_POST['email']) > $dbLoginEmailMaxCharSize) {
+		$error = translate("Maximum length for an email address is ".$dbLoginEmailMaxCharSize." characters");
+	} elseif ($db->getOne("select user_id from ".TBL_AUTH_USER." where email = '{$_POST['email']}' ".(!empty($_POST['login']) ? "or login = '{$_POST['login']}'" : ''))) {
 		$error = translate("That login has already been used");
+	}
 	if (!empty($error)) { 
 		show_form($error);
 		return;
@@ -58,6 +69,7 @@ function do_form() {
 	}
 	$user_id = $db->nextId(TBL_AUTH_USER);
     // Change this line to make new member-created accounts inactive.
+
 	$db->query("insert into ".TBL_AUTH_USER." (user_id, login, first_name, last_name, email, password, active, created_date, last_modified_date) values (".join(', ', array($user_id, $db->quote(stripslashes($login)), $db->quote(stripslashes($firstname)), $db->quote(stripslashes($lastname)), $db->quote($_POST['email']), $mpassword, 1, $now, $now)).")");
 	$db->query("insert into ".TBL_USER_GROUP." (user_id, group_id, created_by, created_date) select $user_id, group_id, 0, $now from ".TBL_AUTH_GROUP." where group_name = '".NEW_ACCOUNTS_GROUP."'"); 
 	$db->query("insert into ".TBL_USER_PREF." (user_id) values ($user_id)");

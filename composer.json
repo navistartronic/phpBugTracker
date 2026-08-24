@@ -1,0 +1,8 @@
+{
+    "require": {
+        "pear/db": "^1.12",
+        "mitoteam/jpgraph": "^10.4",
+        "phpmailer/phpmailer": "^6.10",
+        "pear/spreadsheet_excel_writer": "^0.9.10"
+    }
+}

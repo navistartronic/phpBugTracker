@@ -30,11 +30,19 @@ function do_form($userid = 0) {
 	global $db, $me, $now, $u, $QUERY, $t;
 
 	$error = '';
+        // field size is dictated by TBL_AUTH_USER.{email,login} 
+        // files affected by this change: newaccount.php, admin/user.php, templates/default/admin/user-edit.html
+        $dbLoginEmailMaxCharSize = 60; 
+
 	// Validation
 	if (!EMAIL_IS_LOGIN && !$_POST['login'] = trim($_POST['login'])) {
 		$error = translate("Please enter a login");
+	} elseif (!EMAIL_IS_LOGIN && strlen($_POST['login']) > $dbLoginEmailMaxCharSize) {
+		$error = translate("Maximum length for a login name is ".$dbLoginEmailMaxCharSize." characters");
 	} elseif (!bt_valid_email($_POST['email'])) {
-		$error = translate("Please enter an email");
+		$error = translate("Please enter a valid email");
+	} elseif (strlen($_POST['email']) > $dbLoginEmailMaxCharSize) {
+		$error = translate("Maximum length for an email address is ".$dbLoginEmailMaxCharSize." characters");
 	} elseif (!$_POST['password'] = trim($_POST['password'])) {
 		$error = translate("Please enter a password");
 	}

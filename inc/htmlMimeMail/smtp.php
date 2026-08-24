@@ -6,8 +6,8 @@
 * Last Modified..: 21 December 2001
 */
 
-	define('SMTP_STATUS_NOT_CONNECTED', 1, TRUE);
-	define('SMTP_STATUS_CONNECTED', 2, TRUE);
+	define('SMTP_STATUS_NOT_CONNECTED', 1);
+	define('SMTP_STATUS_CONNECTED', 2);
 
 	class smtp{
 
@@ -43,7 +43,7 @@
 		*             to fsockopen()
         */
 
-		function smtp($params = array()){
+		function __construct($params = array()){
 
 			if(!defined('CRLF'))
 				define('CRLF', "\r\n", TRUE);
@@ -62,6 +62,12 @@
 			foreach($params as $key => $value){
 				$this->$key = $value;
 			}
+
+			// PHP8
+			// Convert (htmlMimeMail.php) and smtp.php from static to object access:
+			// Too problematic for PHP8 backport/refractor; see also htmlMimeMail.php
+			// critical: __construct() was missing the call to connect to the server:
+			$this->connect($params);
 		}
 
 		/**
@@ -76,6 +82,7 @@
 		function &connect($params = array()){
 
 			if(!isset($this->status)){
+				// branch taken when invoke statically (original code): $smtp = &smtp::connect($this->smtp_params);
 				$obj = new smtp($params);
 				if($obj->connect()){
 					$obj->status = SMTP_STATUS_CONNECTED;
@@ -84,11 +91,16 @@
 				return $obj;
 
 			}else{
+				// branch taken when invoked as a class object (new code/port): $smtp = new smtp($this->smtp_params);
 				$this->connection = @fsockopen($this->host, $this->port, $errno, $errstr, $this->timeout);
 				if (!is_resource($this->connection)) {
 					$this->errors[] = 'Failed to connect to server: '.$errstr;
 					return FALSE;
 				}
+
+                                // PHP8 critical: connect() was not setting the status on sucessful connection:
+                                $this->status = SMTP_STATUS_CONNECTED;
+
 				if(function_exists('socket_set_timeout')){
 					@socket_set_timeout($this->connection, 5, 0);
 				}
@@ -319,7 +331,6 @@
         */
 
 		function send_data($data){
-
 			if(is_resource($this->connection)){
 				return fwrite($this->connection, $data.CRLF, strlen($data)+2);
 				

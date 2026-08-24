@@ -1,11 +1,31 @@
+<?php
+if (!isset($db_type)) $db_type = "";
+$VERSION = ($phpversion = @file_get_contents("VERSION")) === false ? "?" : $phpversion;
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Trasitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-	<title>phpBugTracker Installation</title>
+	<title>phpBugTracker Installation<?php echo " (Version ".$VERSION.")" ?></title>
 	<link rel="StyleSheet" href="styles/default.css" type="text/css" />
 	<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
 	<script language="JavaScript" type="text/javascript">
 		<!--
+var prevSel = "";
+function handleSelectChange(event) {
+    var value = event.target.value;
+    if (value == 'sqlite3') {
+            document.getElementById("host_tr_id").style.visibility = 'hidden';
+            document.getElementById("user_tr_id").style.visibility = 'hidden';
+            document.getElementById("password_tr_id").style.visibility = 'hidden';
+            document.getElementById("dbname_id").innerHTML = "&nbsp;&nbsp;<?php echo translate('Database itself will be created if not present; can specify location by path also; parent dir must be writable');?>";
+    } else {
+            document.getElementById("host_tr_id").style.visibility = 'visible';
+            document.getElementById("user_tr_id").style.visibility = 'visible';
+            document.getElementById("password_tr_id").style.visibility = 'visible';
+            document.getElementById("dbname_id").innerHTML = "&nbsp;&nbsp;<?php echo translate('This database must already exist');?>";
+    }
+    prevSel = value;
+}
 		function testDB(frm) {
 			window.open('install.php?op=dbtest&db_type=' + frm.db_type.options[frm.db_type.selectedIndex].value +
 				'&db_host=' + frm.db_host.value + '&db_database=' + frm.db_database.value +
@@ -40,7 +60,7 @@
 			</table>
 		</td>
 		<td valign="top" align="center">
-			<div class="banner"><?php echo translate("phpBugTracker Installation"); ?></div>
+			<div class="banner"><?php echo translate("phpBugTracker Installation")." (Version ".$VERSION.")" ?></div>
 			<?php if (!empty($error))  echo "<div class=\"error\">$error</div>"; ?>
 			<table border="0" cellpadding="0" cellspacing="3">
 				<tr>
@@ -48,32 +68,29 @@
 				</tr>
 				<tr>
 					<td width="150">Type:</td>
-					<td><select name="db_type"><?php db_type_options(isset($db_type) ? $db_type : null) ?></select></td>
+					<td><select onchange="handleSelectChange(event)" name="db_type"><?php db_type_options($db_type) ?></select></td>
 				</tr>
-				<tr>
+				<tr id="host_tr_id" <?php echo $db_type == 'sqlite3' ? 'style="visibility:hidden"' : '' ?>>
 					<td width="150">Host:</td>
-					<td><input type="text" name="db_host" value="<?php echo !empty($db_host) ? $db_host : 'localhost'; ?>" /></td>
+					<td><input type="text" name="db_host" value="<?php echo !empty($db_host) ? $db_host : ($db_type == 'sqlite3' ? '' : 'localhost'); ?>" /><span id="host_id"></span></td>
 				</tr>
 				<tr>
 					<td width="150">
 						<?php echo translate("Database Name"); ?>:
 					</td>
-					<td valign="top"><input type="text" name="db_database" value="<?php echo !empty($db_database) ? $db_database : 'bug_tracker'; ?>" /></td>
-				</tr>
-				<tr>
-					<td colspan="2" align="center"><b>(<?php echo translate("This database must already exist"); ?>)</b></td>
-				</tr>
-				<tr>
+					<td valign="top"><input type="text" name="db_database" value="<?php echo !empty($db_database) ? $db_database : 'phpbugtracker' ?>" ><span id="dbname_id">&nbsp;&nbsp;<?php echo $db_type == 'sqlite3' ? translate('Database itself will be created if not present; can specify location by path also; parent dir must be writable') : translate("This database must already exist"); ?></span>
+					</td>
+				<tr id="user_tr_id" <?php echo $db_type == 'sqlite3' ? 'style="visibility:hidden"' : '' ?>>
 					<td width="150"><?php echo translate("User"); ?>:</td>
-					<td><input type="text" name="db_user" value="<?php echo !empty($db_user) ? $db_user : 'root'; ?>" /></td>
+					<td><input type="text" name="db_user" value="<?php echo !empty($db_user) ? $db_user : ($db_type == 'sqlite3' ? '' : 'root'); ?>" /><span id="dbuser_id"></span></td>
 				</tr>
-				<tr>
+				<tr id="password_tr_id" <?php echo $db_type == 'sqlite3' ? 'style="visibility:hidden"' : '' ?>>
 					<td width="150"><?php echo translate("Password"); ?>:</td>
-					<td><input type="password" name="db_pass" value="<?php echo isset($db_pass) ? $db_pass : ''; ?>" /></td>
+					<td><input type="password" name="db_pass" value="<?php echo isset($db_pass) ? $db_pass : ''; ?>" /><span id="dbpw_id"></span></td>
 				</tr>
-				<tr>
+				<tr style="visibility:hidden">
 					<td width="150"><?php echo translate("Table Prefix"); ?>:</td>
-					<td><input type="text" name="tbl_prefix" value="<?php echo !empty($tbl_prefix) ? $tbl_prefix : 'phpbt_'; ?>" /></td>
+					<td><input type="text" name="tbl_prefix" value="" />&nbsp;&nbsp;<?php echo translate("Historical (multi-tenant db). Recommend leaving blank/no prefix."); ?></td>
 				</tr>
 				<tr>
 					<td colspan="2" align="center">
