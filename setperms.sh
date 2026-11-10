@@ -3,6 +3,8 @@
 # Script file to setup perms, ownership and SELinux contexts necessary 
 # for phpBugTracker usage. Run this before running install.php from the 
 # browser for the initial installation.
+#
+# It is safe to run this script anytime: initial install or on a regular basis.
 
 # --- BEGIN SCRIPT CONFIGURATION ---
 
@@ -20,7 +22,7 @@ if [ ! -d $INSTALL_DIR ]; then
 fi
 
 # These are the only writable directories and files required
-WRITABLE_DIRS="${INSTALL_DIR}/attachments ${INSTALL_DIR}/jpgimages ${INSTALL_DIR}/db"
+WRITABLE_DIRS="${INSTALL_DIR}/attachments ${INSTALL_DIR}/attachments/1 ${INSTALL_DIR}/jpgimages ${INSTALL_DIR}/db"
 WRITABLE_FILES="${INSTALL_DIR}/setperms.sh ${INSTALL_DIR}/db/phpbugtracker-demo.sqlite3"
 
 # check for existance of writable directories
@@ -53,12 +55,19 @@ fi
 
 # Set perms:
 # read-only: 
-find $INSTALL_DIR -type f -exec chmod 400 {} \;
 find $INSTALL_DIR -type d -exec chmod 500 {} \;
+find $INSTALL_DIR -type f -exec chmod 400 {} \;
 
-# writeables:
-chmod 700 $WRITABLE_DIRS
+# writeable directories:
+chmod 700 $WRITABLE_DIRS $INSTALL_DIR
 chmod 600 $WRITABLE_FILES
+
+# writeable directories contents:
+# exceptions: these directories may have files/directories if the script is run 
+#             anytime after the initial install:
+cd ${INSTALL_DIR}/jpgimages   && find . -type f -exec chmod 600 {} \;
+cd ${INSTALL_DIR}/attachments && find . -type d -exec chmod 700 {} \;
+cd ${INSTALL_DIR}/attachments && find . -type f -exec chmod 600 {} \;
 
 # Set ownership:
 chown -R ${WEBSVR_OWNER}:${WEBSVR_GROUP} $INSTALL_DIR
